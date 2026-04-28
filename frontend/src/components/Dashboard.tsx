@@ -4,12 +4,15 @@ import type { Submission } from "../types";
 import FileUpload from "./FileUpload";
 import GradeActions from "./GradeActions";
 import SubmissionsTable from "./SubmissionsTable";
+import StudentManagement from "./StudentManagement";
+import QuestionManagement from "./QuestionManagement";
 
 export default function Dashboard() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [ungradedCount, setUngradedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"submissions" | "students" | "questions">("submissions");
 
   const fetchData = useCallback(async () => {
     try {
@@ -39,46 +42,90 @@ export default function Dashboard() {
         </p>
       </header>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        <FileUpload onUploadComplete={fetchData} />
-
-        <div
+      {/* Tab Navigation */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "24px", borderBottom: "1px solid var(--border)", paddingBottom: "12px" }}>
+        <button
+          className={activeTab === "submissions" ? "btn-primary" : "btn-secondary"}
+          onClick={() => setActiveTab("submissions")}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "12px 0",
+            borderRadius: "6px",
+            padding: "8px 16px",
+            fontWeight: activeTab === "submissions" ? 600 : 400,
           }}
         >
-          <GradeActions ungradedCount={ungradedCount} onGradeComplete={fetchData} />
-          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-            {submissions.length} submission{submissions.length !== 1 ? "s" : ""} total
-          </span>
-        </div>
+          Submissions
+        </button>
+        <button
+          className={activeTab === "students" ? "btn-primary" : "btn-secondary"}
+          onClick={() => setActiveTab("students")}
+          style={{
+            borderRadius: "6px",
+            padding: "8px 16px",
+            fontWeight: activeTab === "students" ? 600 : 400,
+          }}
+        >
+          Students
+        </button>
+        <button
+          className={activeTab === "questions" ? "btn-primary" : "btn-secondary"}
+          onClick={() => setActiveTab("questions")}
+          style={{
+            borderRadius: "6px",
+            padding: "8px 16px",
+            fontWeight: activeTab === "questions" ? 600 : 400,
+          }}
+        >
+          Questions
+        </button>
+      </div>
 
-        {error && (
+      {/* Tab Content */}
+      {activeTab === "submissions" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <FileUpload onUploadComplete={fetchData} />
+
           <div
             style={{
-              padding: "12px 16px",
-              backgroundColor: "rgba(244, 67, 54, 0.1)",
-              border: "1px solid var(--danger)",
-              borderRadius: "var(--radius)",
-              color: "var(--danger)",
-              fontSize: "0.875rem",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "12px 0",
             }}
           >
-            {error}
+            <GradeActions ungradedCount={ungradedCount} onGradeComplete={fetchData} />
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              {submissions.length} submission{submissions.length !== 1 ? "s" : ""} total
+            </span>
           </div>
-        )}
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
-            Loading submissions...
-          </div>
-        ) : (
-          <SubmissionsTable submissions={submissions} onGradeComplete={fetchData} />
-        )}
-      </div>
+          {error && (
+            <div
+              style={{
+                padding: "12px 16px",
+                backgroundColor: "rgba(244, 67, 54, 0.1)",
+                border: "1px solid var(--danger)",
+                borderRadius: "var(--radius)",
+                color: "var(--danger)",
+                fontSize: "0.875rem",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+              Loading submissions...
+            </div>
+          ) : (
+            <SubmissionsTable submissions={submissions} onGradeComplete={fetchData} />
+          )}
+        </div>
+      )}
+
+      {activeTab === "students" && <StudentManagement />}
+
+      {activeTab === "questions" && <QuestionManagement />}
     </div>
   );
 }
