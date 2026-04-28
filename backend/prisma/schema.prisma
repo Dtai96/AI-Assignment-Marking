@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  StudentID    String       @id
+  Name         String
+  Class        String
+  submissions  Submission[]
+}
+
+model Question {
+  QuestID      String       @id
+  prompt       String       @db.Text
+  rubric       String       @db.Text
+  submissions  Submission[]
+}
+
+model Submission {
+  StudentID           String
+  QuestID             String
+  submission          String       @db.LongText
+  score               Int?
+  grade               Boolean  @default(false)
+  draft_feedback      String?    @db.Text
+  plagiarism_risk_score Float  @default(0.0)
+  plagiarism_flagged  Boolean  @default(false)
+  uploaded_at         DateTime @default(now())
+  graded_at           DateTime?
+
+  @@id([StudentID, QuestID])
+  student    Student   @relation(fields: [StudentID], references: [StudentID])
+  question   Question  @relation(fields: [QuestID], references: [QuestID])
+}

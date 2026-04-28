@@ -3,16 +3,28 @@ from typing import Optional
 from datetime import datetime
 
 
+class Student(BaseModel):
+    StudentID: str
+    Name: str
+    Class: str
+
+
+class Question(BaseModel):
+    QuestID: str
+    rubric: str
+
+
 class Submission(BaseModel):
-    student_id: str
-    filename: str
-    extracted_text: str
+    StudentID: str
+    QuestID: str
+    submission: str
     score: Optional[int] = None
+    grade: bool = False
     draft_feedback: Optional[str] = None
     plagiarism_risk_score: float = 0.0
     plagiarism_flagged: bool = False
-    uploaded_at: str = ""
-    graded_at: Optional[str] = None
+    uploaded_at: datetime
+    graded_at: Optional[datetime] = None
 
 
 class UploadResponse(BaseModel):
@@ -45,6 +57,7 @@ class GradeAllResponse(BaseModel):
 
 class SubmissionOut(BaseModel):
     student_id: str
+    quest_id: str
     filename: str
     uploaded_at: str
     score: Optional[int] = None

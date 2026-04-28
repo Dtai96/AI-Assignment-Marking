@@ -2,12 +2,24 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import upload, grading, submissions
+from app.database import connect_db, disconnect_db
+from app.storage import SubmissionStore
+from app.database import db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Storage is loaded on module import (app.storage)
+    # Connect to database on startup
+    await connect_db()
+    
+    # Initialize the store with Prisma client
+    from app import storage
+    storage.store = SubmissionStore(db)
+    
     yield
+    
+    # Disconnect from database on shutdown
+    await disconnect_db()
 
 
 app = FastAPI(title="Automated Tutor Feedback Engine", lifespan=lifespan)

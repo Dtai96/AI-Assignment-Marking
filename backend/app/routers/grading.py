@@ -9,7 +9,8 @@ router = APIRouter()
 
 @router.post("/grade/{student_id}", response_model=GradeResponse)
 async def grade_single(student_id: str):
-    submission = store.get(student_id)
+    quest_id = "Q001"  # Default question ID
+    submission = await store.get(student_id, quest_id)
     if not submission:
         raise HTTPException(
             status_code=404,
@@ -17,44 +18,56 @@ async def grade_single(student_id: str):
         )
 
     try:
-        result = grade_submission(submission.extracted_text)
+        result = grade_submission(submission.submission)
     except Exception as e:
         raise HTTPException(
             status_code=502,
             detail=f"Gemini API call failed: {str(e)}",
         )
 
-    graded_at = datetime.now(timezone.utc).isoformat()
-    submission.score = result["score"]
-    submission.draft_feedback = result["draft_feedback"]
-    submission.graded_at = graded_at
-    store.upsert(submission)
+    graded_at = datetime.now(timezone.utc)
+    submission_data = {
+        "StudentID": student_id,
+        "QuestID": quest_id,
+        "score": result["score"],
+        "grade": True,
+        "draft_feedback": result.get("draft_feedback", ""),
+        "graded_at": graded_at,
+    }
+    await store.upsert(submission_data)
 
     return GradeResponse(
         student_id=student_id,
         score=result["score"],
-        draft_feedback=result["draft_feedback"],
-        graded_at=graded_at,
+        draft_feedback=result.get("draft_feedback", ""),
+        graded_at=graded_at.isoformat(),
     )
 
 
 @router.post("/grade-all", response_model=GradeAllResponse)
 async def grade_all():
-    all_subs = store.get_all()
-    ungraded = {sid: sub for sid, sub in all_subs.items() if sub.score is None}
+    all_subs = await store.get_all()
+    ungraded = [sub for sub in all_subs if sub.score is None]
 
     results = []
     graded_count = 0
     failed_count = 0
 
-    for student_id, submission in ungraded.items():
+    for submission in ungraded:
+        student_id = submission.StudentID
+        quest_id = submission.QuestID
         try:
-            result = grade_submission(submission.extracted_text)
-            graded_at = datetime.now(timezone.utc).isoformat()
-            submission.score = result["score"]
-            submission.draft_feedback = result["draft_feedback"]
-            submission.graded_at = graded_at
-            store.upsert(submission)
+            result = grade_submission(submission.submission)
+            graded_at = datetime.now(timezone.utc)
+            submission_data = {
+                "StudentID": student_id,
+                "QuestID": quest_id,
+                "score": result["score"],
+                "grade": True,
+                "draft_feedback": result.get("draft_feedback", ""),
+                "graded_at": graded_at,
+            }
+            await store.upsert(submission_data)
             results.append(
                 GradeAllResult(
                     student_id=student_id,

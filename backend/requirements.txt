@@ -5,3 +5,4 @@ google-genai
 rank-bm25
 python-dotenv
 python-multipart
+prisma

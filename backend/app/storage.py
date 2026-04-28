@@ -1,42 +1,88 @@
-import json
-from pathlib import Path
-from app.config import SUBMISSIONS_FILE
-from app.models import Submission
+from prisma import Prisma
+from datetime import datetime, timezone
+from app.database import db
 
 
 class SubmissionStore:
-    def __init__(self):
-        self._store: dict[str, Submission] = {}
-        self._load()
+    def __init__(self, prisma: Prisma):
+        self.db = prisma
 
-    def _load(self):
-        if SUBMISSIONS_FILE.exists():
-            with open(SUBMISSIONS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            for student_id, record in data.items():
-                self._store[student_id] = Submission(**record)
+    async def get(self, student_id: str, quest_id: str = "Q001") -> dict | None:
+        """Get a submission by student ID and question ID"""
+        submission = await self.db.submission.find_unique(
+            where={
+                "StudentID_QuestID": {
+                    "StudentID": student_id,
+                    "QuestID": quest_id
+                }
+            }
+        )
+        return submission
 
-    def _save(self):
-        data = {sid: sub.model_dump() for sid, sub in self._store.items()}
-        with open(SUBMISSIONS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+    async def get_all(self) -> list:
+        """Get all submissions"""
+        submissions = await self.db.submission.find_many(
+            include={"student": True, "question": True}
+        )
+        return submissions
 
-    def get(self, student_id: str) -> Submission | None:
-        return self._store.get(student_id)
+    async def upsert(self, submission_data: dict):
+        """Create or update a submission"""
+        submission = await self.db.submission.upsert(
+            where={
+                "StudentID_QuestID": {
+                    "StudentID": submission_data["StudentID"],
+                    "QuestID": submission_data.get("QuestID", "Q001")
+                }
+            },
+            data={
+                "create": submission_data,
+                "update": {
+                    "score": submission_data.get("score"),
+                    "grade": submission_data.get("grade", False),
+                    "draft_feedback": submission_data.get("draft_feedback"),
+                    "plagiarism_risk_score": submission_data.get("plagiarism_risk_score", 0.0),
+                    "plagiarism_flagged": submission_data.get("plagiarism_flagged", False),
+                    "graded_at": submission_data.get("graded_at"),
+                }
+            }
+        )
+        return submission
 
-    def get_all(self) -> dict[str, Submission]:
-        return self._store
+    async def get_all_texts_except(self, exclude_id: str, quest_id: str = "Q001") -> list[str]:
+        """Get all submission texts except for a specific student"""
+        submissions = await self.db.submission.find_many(
+            where={
+                "StudentID": {"not": exclude_id},
+                "QuestID": quest_id
+            }
+        )
+        return [sub.submission for sub in submissions if sub.submission]
 
-    def upsert(self, submission: Submission):
-        self._store[submission.student_id] = submission
-        self._save()
+    async def create_student(self, student_data: dict):
+        """Create a new student"""
+        student = await self.db.student.create(data=student_data)
+        return student
 
-    def get_all_texts_except(self, exclude_id: str) -> list[str]:
-        return [
-            sub.extracted_text
-            for sid, sub in self._store.items()
-            if sid != exclude_id and sub.extracted_text
-        ]
+    async def get_student(self, student_id: str) -> dict | None:
+        """Get a student by ID"""
+        student = await self.db.student.find_unique(
+            where={"StudentID": student_id}
+        )
+        return student
+
+    async def create_question(self, question_data: dict):
+        """Create a new question"""
+        question = await self.db.question.create(data=question_data)
+        return question
+
+    async def get_question(self, quest_id: str) -> dict | None:
+        """Get a question by ID"""
+        question = await self.db.question.find_unique(
+            where={"QuestID": quest_id}
+        )
+        return question
 
 
-store = SubmissionStore()
+# This will be initialized with the Prisma client in main.py
+store = None
