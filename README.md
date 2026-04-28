@@ -1,105 +1,320 @@
-# Marking Engine
+# AI Assignment Marking System
 
-An AI-powered marking system that automates grading of student PDF submissions with plagiarism detection.
+An AI-powered automated grading system that evaluates student PDF submissions using Google Gemini, with built-in plagiarism detection and MySQL database storage.
 
-## Features
+## ✨ Features
 
-- **PDF Upload**: Upload student submissions with automatic text extraction
-- **AI Grading**: Google Gemini-powered grading with detailed feedback
-- **Plagiarism Detection**: Built-in similarity checking across submissions
-- **Dashboard**: View and manage all submissions in one place
+- **📄 PDF Upload**: Upload student submissions with automatic text extraction from PDFs
+- **🤖 AI Grading**: Google Gemini-powered intelligent grading with detailed constructive feedback
+- **🔍 Plagiarism Detection**: Built-in BM25 similarity checking across all submissions
+- **📊 Dashboard**: Modern React UI to view and manage all submissions
+- **💾 MySQL Database**: Robust data storage with Prisma ORM for production-ready scalability
+- **👥 Student Management**: Track students, classes, and their submissions
+- **📝 Question & Rubric System**: Configurable grading rubrics per question
 
-## Prerequisites
+## 🚀 Quick Start
 
-- Python 3.8+
-- Node.js and npm
-- Google Gemini API key
+### Prerequisites
 
-## Quick Start
+- **Python 3.8+**
+- **Node.js 16+** and npm
+- **MySQL 5.7+** (running on port 3306)
+- **Google Gemini API key** ([Get one here](https://makersuite.google.com/app/apikey))
 
-### 1. Clone and Setup
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/dqduong2003/marking-engine.git
+git clone https://github.com/Dtai96/AI-Assignment-Marking.git
 cd marking-engine
 ```
 
-### 2. Configure Environment
+### 2. Setup MySQL Database
 
-Create `backend/.env`:
+Create the database:
 
 ```bash
-GEMINI_API_KEY=your_gemini_api_key_here
+mysql -u root -p -e "CREATE DATABASE ai_marking;"
 ```
 
-### 3. Install Dependencies
+### 3. Configure Environment Variables
 
-**Backend:**
+Create `backend/.env` file:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+DATABASE_URL=mysql://root:your_password@localhost:3306/ai_marking
+```
+
+⚠️ **Important**: Replace `your_password` with your actual MySQL root password.
+
+### 4. Install Dependencies & Setup Database
+
+**Windows (Automated):**
 ```bash
 cd backend
-pip install -r requirements.txt
+setup_database.bat
 ```
 
-**Frontend:**
+**Manual Setup:**
+```bash
+cd backend
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Generate Prisma client
+prisma generate
+
+# Push schema to database
+prisma db push
+
+# Seed database with sample data
+python prisma/seed.py
+```
+
+### 5. Install Frontend Dependencies
+
 ```bash
 cd frontend
 npm install
 ```
 
-### 4. Run the Application
+### 6. Run the Application
 
-**Terminal 1 - Backend:**
+**Terminal 1 - Backend (FastAPI):**
 ```bash
 cd backend
 uvicorn app.main:app --reload
 ```
 
-**Terminal 2 - Frontend:**
+**Terminal 2 - Frontend (React):**
 ```bash
 cd frontend
 npm run dev
 ```
 
-### 5. Access the App
+### 7. Access the Application
 
-- Frontend: http://localhost:5173
-- API Docs: http://localhost:8000/docs
+- 🌐 **Frontend Dashboard**: http://localhost:5173
+- 📚 **API Documentation**: http://localhost:8000/docs
+- 🔧 **API Health Check**: http://localhost:8000/api/submissions
 
-## Usage
+## 📖 Usage Guide
 
-1. Upload PDFs with student IDs in the filename (e.g., `S10485739_Alice.pdf`)
-2. View submissions in the dashboard
-3. Click "Grade All" or grade individual submissions
-4. Review AI-generated scores and feedback
+### Uploading Submissions
 
-## Project Structure
+1. Prepare PDF files with student ID in filename: `S{student_id}_{name}.pdf`
+   - Example: `S10485739_Alice.pdf`, `S10492811_Bob.pdf`
+2. Upload via the dashboard or API endpoint
+3. System automatically extracts text and checks for plagiarism
+
+### Grading Submissions
+
+- **Grade All**: Click "Grade All" button to grade all ungraded submissions at once
+- **Individual Grading**: Click "Grade" on specific submissions
+- AI will provide:
+  - Score (0-100)
+  - Detailed feedback for improvement
+  - Plagiarism risk assessment
+
+### Viewing Results
+
+- Dashboard shows all submissions with:
+  - Student ID and name
+  - Upload and grading timestamps
+  - Scores and feedback
+  - Plagiarism risk scores and flags
+
+## 🗄️ Database Schema
+
+### Tables
+
+**Student**
+- `StudentID` (Primary Key) - Unique student identifier
+- `Name` - Student's full name
+- `Class` - Course/class name
+
+**Question**
+- `QuestID` (Primary Key) - Unique question identifier
+- `prompt` - Question prompt/description
+- `rubric` - Grading rubric and criteria
+
+**Submission**
+- `StudentID` (Foreign Key) - References Student
+- `QuestID` (Foreign Key) - References Question
+- `submission` - Full text of student's submission
+- `score` - AI-assigned score (0-100)
+- `grade` - Boolean indicating if graded
+- `draft_feedback` - Detailed AI feedback
+- `plagiarism_risk_score` - Similarity percentage
+- `plagiarism_flagged` - High plagiarism indicator
+- `uploaded_at` - Upload timestamp
+- `graded_at` - Grading timestamp
+
+### Sample Data
+
+The seeding script creates:
+- 4 students (Alice, Bob, Charlie, David)
+- 2 questions with comprehensive rubrics
+- 3 sample submissions with varying plagiarism scores
+
+## 🏗️ Project Structure
 
 ```
 marking-engine/
-├── backend/          # FastAPI + Google Gemini
+├── backend/                    # FastAPI Backend
 │   ├── app/
-│   │   ├── routers/  # API endpoints
-│   │   └── services/ # Grading & plagiarism
-│   └── requirements.txt
-└── frontend/         # React + Vite + TypeScript
-    └── src/
+│   │   ├── routers/           # API endpoints
+│   │   │   ├── upload.py      # File upload handling
+│   │   │   ├── grading.py     # Grading operations
+│   │   │   └── submissions.py # Submission listing
+│   │   ├── services/
+│   │   │   ├── grading.py     # Gemini AI grading
+│   │   │   ├── pdf_parser.py  # PDF text extraction
+│   │   │   └── plagiarism.py  # Plagiarism detection
+│   │   ├── database.py        # Prisma client setup
+│   │   ├── storage.py         # Database operations
+│   │   ├── models.py          # Pydantic models
+│   │   ├── config.py          # Configuration
+│   │   └── main.py            # FastAPI app entry
+│   ├── prisma/
+│   │   ├── schema.prisma      # Database schema
+│   │   └── seed.py            # Database seeding
+│   ├── uploads/               # Uploaded PDF files
+│   ├── requirements.txt       # Python dependencies
+│   └── setup_database.bat     # Windows setup script
+├── frontend/                  # React Frontend
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   ├── api/               # API client
+│   │   ├── types/             # TypeScript types
+│   │   └── styles/            # CSS styles
+│   └── package.json
+├── screenshots/               # App screenshots
+└── README.md
 ```
 
-## Screenshots
+## 🛠️ Tech Stack
+
+### Backend
+- **Framework**: FastAPI (Python)
+- **Database**: MySQL 5.7+
+- **ORM**: Prisma
+- **AI**: Google Gemini API
+- **PDF Processing**: PyPDF2
+- **Plagiarism**: rank-bm25
+
+### Frontend
+- **Framework**: React 18
+- **Language**: TypeScript
+- **Build Tool**: Vite
+- **Styling**: Custom CSS
+
+### Development
+- **Package Management**: pip (Python), npm (Node.js)
+- **API Documentation**: Swagger/OpenAPI (auto-generated)
+
+## 📸 Screenshots
+
 ### Dashboard
 ![Dashboard](/screenshots/dashboard.png)
 
-## Troubleshooting
+## 🔧 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/upload` | Upload a PDF submission |
+| GET | `/api/submissions` | List all submissions |
+| POST | `/api/grade/{student_id}` | Grade a specific submission |
+| POST | `/api/grade-all` | Grade all ungraded submissions |
+
+### Example: Upload Submission
+
+```bash
+curl -X POST http://localhost:8000/api/upload \
+  -F "file=@S10485739_Alice.pdf"
+```
+
+### Example: Grade Submission
+
+```bash
+curl -X POST http://localhost:8000/api/grade/S10485739
+```
+
+## 📝 Configuration
+
+### Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `GEMINI_API_KEY` | Google Gemini API key | `AIzaSy...` |
+| `DATABASE_URL` | MySQL connection string | `mysql://root:pass@localhost:3306/ai_marking` |
+
+### Database Management
+
+**Reset Database:**
+```bash
+cd backend
+prisma db push --force-reset
+python prisma/seed.py
+```
+
+**View Submissions (MySQL):**
+```sql
+USE ai_marking;
+SELECT StudentID, score, plagiarism_flagged FROM Submission;
+```
+
+## 🐛 Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| Missing API key | Add `GEMINI_API_KEY` to `backend/.env` |
+| Cannot connect to MySQL | Verify MySQL is running: `net start MySQL` (Windows) |
+| Database push fails | Ensure database exists: `CREATE DATABASE ai_marking;` |
+| Missing API key error | Add `GEMINI_API_KEY` to `backend/.env` |
 | PDF parsing fails | Use PDFs with selectable text (not scanned images) |
-| Invalid filename | Use format: `S{student_id}_{name}.pdf` |
-| Port conflicts | Change ports in backend/frontend configs |
+| Invalid filename format | Use format: `S{student_id}_{name}.pdf` |
+| Port 8000 in use | Change port: `uvicorn app.main:app --reload --port 8001` |
+| Port 5173 in use | Vite will automatically use next available port |
+| Prisma generate fails | Run: `prisma generate --force` |
 
-## Tech Stack
+## 📚 Documentation
 
-- **Backend**: Python, FastAPI, Google Gemini API, PyPDF2
-- **Frontend**: React, TypeScript, Vite
-- **Storage**: JSON file-based
+- **[Quick Start Guide](backend/QUICK_START.md)** - 5-minute setup
+- **[Database Setup](backend/DATABASE_SETUP.md)** - Detailed DB configuration
+- **[Migration Guide](backend/MIGRATION_GUIDE.md)** - Comprehensive migration docs
+- **[Migration Summary](MIGRATION_SUMMARY.md)** - Overview of changes
+
+## 🔐 Security Notes
+
+- Never commit `.env` file (contains database credentials and API keys)
+- Use strong passwords for MySQL root account
+- Consider creating a dedicated MySQL user with limited privileges
+- Keep Gemini API key secure and rotate periodically
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## 👨‍💻 Author
+
+**dqduong2003**
+
+## 🙏 Acknowledgments
+
+- Google Gemini for AI grading capabilities
+- FastAPI for the excellent Python web framework
+- Prisma for modern database ORM
+- React and Vite for the frontend stack
+
+---
+
+⭐ **If you find this project helpful, please give it a star on GitHub!**
