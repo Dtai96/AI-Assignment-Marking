@@ -43,40 +43,38 @@ export default function Dashboard() {
       </header>
 
       {/* Tab Navigation */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "24px", borderBottom: "1px solid var(--border)", paddingBottom: "12px" }}>
-        <button
-          className={activeTab === "submissions" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setActiveTab("submissions")}
-          style={{
-            borderRadius: "6px",
-            padding: "8px 16px",
-            fontWeight: activeTab === "submissions" ? 600 : 400,
-          }}
-        >
-          Submissions
-        </button>
-        <button
-          className={activeTab === "students" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setActiveTab("students")}
-          style={{
-            borderRadius: "6px",
-            padding: "8px 16px",
-            fontWeight: activeTab === "students" ? 600 : 400,
-          }}
-        >
-          Students
-        </button>
-        <button
-          className={activeTab === "questions" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setActiveTab("questions")}
-          style={{
-            borderRadius: "6px",
-            padding: "8px 16px",
-            fontWeight: activeTab === "questions" ? 600 : 400,
-          }}
-        >
-          Questions
-        </button>
+      <div style={{
+        display: "flex", 
+        gap: "4px", 
+        marginBottom: "24px", 
+        backgroundColor: "#1e1e2f", // Màu nền nhẹ cho thanh nav
+        padding: "4px", 
+        borderRadius: "8px",
+        width: "fit-content"
+      }}>
+        {[
+          { id: "submissions", label: "📄 Submissions" },
+          { id: "students", label: "👨‍🎓 Students" },
+          { id: "questions", label: "❓ Questions" }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as "submissions" | "students" | "questions")}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: activeTab === tab.id ? 600 : 500,
+              backgroundColor: activeTab === tab.id ? "#3b82f6" : "transparent",
+              color: activeTab === tab.id ? "#ffffff" : "#94a3b8",
+              transition: "all 0.2s ease"
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}
