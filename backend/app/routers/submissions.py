@@ -1,5 +1,5 @@
-from fastapi import APIRouter
-from app.storage import store
+from fastapi import APIRouter, HTTPException
+from app import storage
 from app.models import SubmissionListResponse, SubmissionOut
 
 router = APIRouter()
@@ -7,7 +7,9 @@ router = APIRouter()
 
 @router.get("/submissions", response_model=SubmissionListResponse)
 async def list_submissions():
-    all_subs = await store.get_all()
+    if storage.store is None:
+        raise HTTPException(status_code=503, detail="Database not initialized")
+    all_subs = await storage.store.get_all()
     submissions_out = []
     ungraded = 0
     for sub in all_subs:
