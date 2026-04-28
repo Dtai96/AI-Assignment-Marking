@@ -28,16 +28,29 @@ class SubmissionStore:
 
     async def upsert(self, submission_data: dict):
         """Create or update a submission"""
-        submission = await self.db.submission.upsert(
+        student_id = submission_data["StudentID"]
+        quest_id = submission_data.get("QuestID", "Q001")
+        
+        # Check if submission already exists
+        existing = await self.db.submission.find_unique(
             where={
                 "StudentID_QuestID": {
-                    "StudentID": submission_data["StudentID"],
-                    "QuestID": submission_data.get("QuestID", "Q001")
+                    "StudentID": student_id,
+                    "QuestID": quest_id
                 }
-            },
-            data={
-                "create": submission_data,
-                "update": {
+            }
+        )
+        
+        if existing:
+            # Update existing submission
+            submission = await self.db.submission.update(
+                where={
+                    "StudentID_QuestID": {
+                        "StudentID": student_id,
+                        "QuestID": quest_id
+                    }
+                },
+                data={
                     "score": submission_data.get("score"),
                     "grade": submission_data.get("grade", False),
                     "draft_feedback": submission_data.get("draft_feedback"),
@@ -45,8 +58,22 @@ class SubmissionStore:
                     "plagiarism_flagged": submission_data.get("plagiarism_flagged", False),
                     "graded_at": submission_data.get("graded_at"),
                 }
-            }
-        )
+            )
+        else:
+            # Create new submission (requires all required fields)
+            submission = await self.db.submission.create(
+                data={
+                    "StudentID": student_id,
+                    "QuestID": quest_id,
+                    "submission": submission_data.get("submission", ""),
+                    "score": submission_data.get("score"),
+                    "grade": submission_data.get("grade", False),
+                    "draft_feedback": submission_data.get("draft_feedback"),
+                    "plagiarism_risk_score": submission_data.get("plagiarism_risk_score", 0.0),
+                    "plagiarism_flagged": submission_data.get("plagiarism_flagged", False),
+                    "graded_at": submission_data.get("graded_at"),
+                }
+            )
         return submission
 
     async def get_all_texts_except(self, exclude_id: str, quest_id: str = "Q001") -> list[str]:
