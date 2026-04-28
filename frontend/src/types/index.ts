@@ -1,5 +1,18 @@
+export interface Student {
+  StudentID: string;
+  Name: string;
+  Class: string;
+}
+
+export interface Question {
+  QuestID: string;
+  prompt: string;
+  rubric: string;
+}
+
 export interface Submission {
   student_id: string;
+  quest_id: string;
   filename: string;
   uploaded_at: string;
   score: number | null;
@@ -19,6 +32,7 @@ export interface UploadResponse {
 
 export interface GradeResponse {
   student_id: string;
+  quest_id: string;
   score: number;
   draft_feedback: string;
   graded_at: string;
@@ -41,4 +55,14 @@ export interface SubmissionListResponse {
   submissions: Submission[];
   total: number;
   ungraded_count: number;
+}
+
+export interface StudentListResponse {
+  students: Student[];
+  total: number;
+}
+
+export interface QuestionListResponse {
+  questions: Question[];
+  total: number;
 }
