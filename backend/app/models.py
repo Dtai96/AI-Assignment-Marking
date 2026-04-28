@@ -43,6 +43,12 @@ class Token(BaseModel):
     user: UserResponse
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+
 class Submission(BaseModel):
     StudentID: str
     QuestID: str

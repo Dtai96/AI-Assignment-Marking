@@ -207,3 +207,23 @@ export async function deleteQuestion(questId: string): Promise<{ message: string
   }
   return res.json();
 }
+
+// Change password
+export async function changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
+  const res = await fetch(`${API_BASE}/auth/change-password`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+      confirm_password: confirmPassword
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to change password');
+  }
+
+  return res.json();
+}

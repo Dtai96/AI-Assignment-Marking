@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getSubmissions } from "../api/client";
 import type { Submission } from "../types";
 import FileUpload from "./FileUpload";
@@ -6,17 +6,23 @@ import GradeActions from "./GradeActions";
 import SubmissionsTable from "./SubmissionsTable";
 import StudentManagement from "./StudentManagement";
 import QuestionManagement from "./QuestionManagement";
+import { useAuth } from "../context/AuthContext";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 interface DashboardProps {
   onLogout: () => void;
 }
 
 export default function Dashboard({ onLogout }: DashboardProps) {
+  const { user } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [ungradedCount, setUngradedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"submissions" | "students" | "questions">("submissions");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -35,6 +41,33 @@ export default function Dashboard({ onLogout }: DashboardProps) {
     fetchData();
   }, [fetchData]);
 
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProfileMenu]);
+
+  const handleProfileClick = () => {
+    // TODO: Navigate to profile page or open profile modal
+    alert('Profile page coming soon!');
+    setShowProfileMenu(false);
+  };
+
+  const handleChangePasswordClick = () => {
+    setShowChangePasswordModal(true);
+    setShowProfileMenu(false);
+  };
+
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
       <header style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -46,21 +79,131 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             Upload student PDFs, detect plagiarism, and generate AI-powered feedback
           </p>
         </div>
-        <button
-          onClick={onLogout}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "transparent",
-            border: "1px solid #ef4444",
-            color: "#ef4444",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-          }}
-        >
-          Logout
-        </button>
+        
+        {/* User Profile Dropdown */}
+        <div style={{ position: "relative" }} ref={menuRef}>
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "8px 16px",
+              backgroundColor: "#1e1e2f",
+              border: "1px solid #2d2d44",
+              borderRadius: "8px",
+              cursor: "pointer",
+              color: "#ffffff",
+              transition: "all 0.2s ease"
+            }}
+          >
+            {/* User Avatar */}
+            <div style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              backgroundColor: "#3b82f6",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.875rem",
+              fontWeight: 600
+            }}>
+              {user?.full_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            
+            {/* User Name */}
+            <span style={{ fontWeight: 500, fontSize: "0.875rem" }}>
+              {user?.full_name || user?.username || 'User'}
+            </span>
+            
+            {/* Dropdown Arrow */}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{
+              transform: showProfileMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease'
+            }}>
+              <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {/* Dropdown Menu */}
+          {showProfileMenu && (
+            <div style={{
+              position: "absolute",
+              top: "calc(100% + 8px)",
+              right: 0,
+              backgroundColor: "#1e1e2f",
+              border: "1px solid #2d2d44",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+              minWidth: "180px",
+              zIndex: 1000,
+              overflow: "hidden"
+            }}>
+              {/* User Info Header */}
+              <div style={{
+                padding: "12px 16px",
+                borderBottom: "1px solid #2d2d44"
+              }}>
+                <div style={{ fontWeight: 600, fontSize: "0.875rem", color: "#ffffff" }}>
+                  {user?.full_name || user?.username}
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "2px" }}>
+                  {user?.email}
+                </div>
+              </div>
+              
+              {/* Menu Items */}
+              <button
+                onClick={handleChangePasswordClick}
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  borderTop: "1px solid #2d2d44",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "background-color 0.2s ease"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#2d2d44"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                <span>🔑</span>
+                <span>Change Password</span>
+              </button>
+              
+              <button
+                onClick={onLogout}
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  borderTop: "1px solid #2d2d44",
+                  color: "#ef4444",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "background-color 0.2s ease"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                <span>🚪</span>
+                <span>Log Out</span>
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Tab Navigation */}
@@ -145,6 +288,12 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       {activeTab === "students" && <StudentManagement />}
 
       {activeTab === "questions" && <QuestionManagement />}
+      
+      {/* Change Password Modal */}
+      <ChangePasswordModal 
+        isOpen={showChangePasswordModal} 
+        onClose={() => setShowChangePasswordModal(false)} 
+      />
     </div>
   );
 }

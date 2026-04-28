@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.tsx';
 import '../styles/globals.css';
 
 interface LoginPageProps {
@@ -76,12 +76,6 @@ export default function LoginPage({ onSwitchToRegister }: LoginPageProps) {
               Sign up
             </button>
           </p>
-        </div>
-
-        <div className="demo-credentials">
-          <p><strong>Demo Credentials:</strong></p>
-          <p>Username: <code>admin</code></p>
-          <p>Password: <code>admin123</code></p>
         </div>
       </div>
     </div>

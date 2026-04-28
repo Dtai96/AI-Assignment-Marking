@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import Dashboard from './components/Dashboard';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
-import * as api from './api/client';
+
 
 function AuthenticatedApp() {
   const { isAuthenticated, logout } = useAuth();

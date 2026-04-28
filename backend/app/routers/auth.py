@@ -2,12 +2,13 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from prisma import Prisma
 from app.database import db
-from app.models import UserCreate, UserLogin, UserResponse, Token
+from app.models import UserCreate, UserLogin, UserResponse, Token, ChangePasswordRequest
 from app.services.auth import (
     get_password_hash,
     create_access_token,
     authenticate_user,
     get_current_user,
+    verify_password,
     oauth2_scheme
 )
 from datetime import datetime, timezone
@@ -120,3 +121,42 @@ async def logout(token: str = Depends(oauth2_scheme)):
     # Since JWT is stateless, we inform the client to remove the token
     # For true logout, you'd need a token blacklist in Redis/Database
     return {"message": "Successfully logged out. Please remove the token from client storage."}
+
+
+@router.post("/auth/change-password")
+async def change_password(
+    password_data: ChangePasswordRequest,
+    token: str = Depends(oauth2_scheme)
+):
+    """Change user password"""
+    # Get current user
+    user = await get_current_user(db, token)
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Validate new password
+    if password_data.new_password != password_data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New passwords do not match"
+        )
+    
+    if len(password_data.new_password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 6 characters long"
+        )
+    
+    # Update password
+    hashed_password = get_password_hash(password_data.new_password)
+    await db.user.update(
+        where={"id": user.id},
+        data={"password_hash": hashed_password}
+    )
+    
+    return {"message": "Password changed successfully"}
