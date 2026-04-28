@@ -7,7 +7,11 @@ import SubmissionsTable from "./SubmissionsTable";
 import StudentManagement from "./StudentManagement";
 import QuestionManagement from "./QuestionManagement";
 
-export default function Dashboard() {
+interface DashboardProps {
+  onLogout: () => void;
+}
+
+export default function Dashboard({ onLogout }: DashboardProps) {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [ungradedCount, setUngradedCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -33,13 +37,30 @@ export default function Dashboard() {
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
-      <header style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "1.5rem", marginBottom: "4px" }}>
-          Tutor Feedback Engine
-        </h1>
-        <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
-          Upload student PDFs, detect plagiarism, and generate AI-powered feedback
-        </p>
+      <header style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h1 style={{ fontSize: "1.5rem", marginBottom: "4px" }}>
+            Tutor Feedback Engine
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+            Upload student PDFs, detect plagiarism, and generate AI-powered feedback
+          </p>
+        </div>
+        <button
+          onClick={onLogout}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "transparent",
+            border: "1px solid #ef4444",
+            color: "#ef4444",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "0.875rem",
+            fontWeight: 500,
+          }}
+        >
+          Logout
+        </button>
       </header>
 
       {/* Tab Navigation */}

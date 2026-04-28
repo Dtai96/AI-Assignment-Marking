@@ -11,6 +11,72 @@ import type {
   Question,
 } from "../types";
 
+// Authentication token management
+let authToken: string | null = null;
+
+export function setToken(token: string | null) {
+  authToken = token;
+}
+
+export function getToken(): string | null {
+  return authToken;
+}
+
+// Helper function to get headers with auth token
+function getAuthHeaders(additionalHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...additionalHeaders };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  return headers;
+}
+
+// Auth API functions
+export async function login(username: string, password: string) {
+  const formData = new FormData();
+  formData.append('username', username);
+  formData.append('password', password);
+
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Login failed');
+  }
+
+  return res.json();
+}
+
+export async function register(username: string, email: string, full_name: string, password: string) {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, full_name, password }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Registration failed');
+  }
+
+  return res.json();
+}
+
+export async function getCurrentUser() {
+  const res = await fetch(`${API_BASE}/auth/me`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to get user info');
+  }
+
+  return res.json();
+}
+
 export async function getSubmissions(): Promise<SubmissionListResponse> {
   const res = await fetch(`${API_BASE}/submissions`);
   if (!res.ok) throw new Error(`Failed to fetch submissions: ${res.statusText}`);
