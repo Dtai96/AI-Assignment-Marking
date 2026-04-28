@@ -40,6 +40,7 @@ async def seed_database():
         questions = [
             {
                 "QuestID": "Q001",
+                "prompt": "Discuss the fundamentals of machine learning and its applications in real-world scenarios.",
                 "rubric": """Grade the following student submission based on:
 1. Content quality and depth (40%)
 2. Structure and organization (30%)
@@ -50,6 +51,7 @@ Provide a score out of 100 and detailed feedback."""
             },
             {
                 "QuestID": "Q002", 
+                "prompt": "Write an essay on the impact of artificial intelligence on modern society with a critical analysis of both positive and negative aspects.",
                 "rubric": """Grade the following essay based on:
 1. Thesis statement clarity (25%)
 2. Argument development (35%)
