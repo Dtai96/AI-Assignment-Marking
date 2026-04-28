@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
-from app.storage import store
+from app import storage
 from app.models import GradeResponse, GradeAllResponse, GradeAllResult
 from app.services.grading import grade_submission
 
@@ -8,13 +8,14 @@ router = APIRouter()
 
 
 @router.post("/grade/{student_id}", response_model=GradeResponse)
-async def grade_single(student_id: str):
-    quest_id = "Q001"  # Default question ID
-    submission = await store.get(student_id, quest_id)
+async def grade_single(student_id: str, quest_id: str = "Q001"):
+    if storage.store is None:
+        raise HTTPException(status_code=503, detail="Database not initialized")
+    submission = await storage.store.get(student_id, quest_id)
     if not submission:
         raise HTTPException(
             status_code=404,
-            detail=f"Submission not found for student ID: {student_id}",
+            detail=f"Submission not found for student ID: {student_id} and question ID: {quest_id}",
         )
 
     try:
@@ -34,10 +35,11 @@ async def grade_single(student_id: str):
         "draft_feedback": result.get("draft_feedback", ""),
         "graded_at": graded_at,
     }
-    await store.upsert(submission_data)
+    await storage.store.upsert(submission_data)
 
     return GradeResponse(
         student_id=student_id,
+        quest_id=quest_id,
         score=result["score"],
         draft_feedback=result.get("draft_feedback", ""),
         graded_at=graded_at.isoformat(),
@@ -46,7 +48,9 @@ async def grade_single(student_id: str):
 
 @router.post("/grade-all", response_model=GradeAllResponse)
 async def grade_all():
-    all_subs = await store.get_all()
+    if storage.store is None:
+        raise HTTPException(status_code=503, detail="Database not initialized")
+    all_subs = await storage.store.get_all()
     ungraded = [sub for sub in all_subs if sub.score is None]
 
     results = []
@@ -67,7 +71,7 @@ async def grade_all():
                 "draft_feedback": result.get("draft_feedback", ""),
                 "graded_at": graded_at,
             }
-            await store.upsert(submission_data)
+            await storage.store.upsert(submission_data)
             results.append(
                 GradeAllResult(
                     student_id=student_id,

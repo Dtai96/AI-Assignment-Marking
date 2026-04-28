@@ -37,6 +37,7 @@ class UploadResponse(BaseModel):
 
 class GradeResponse(BaseModel):
     student_id: str
+    quest_id: str
     score: int
     draft_feedback: str
     graded_at: str
