@@ -37,6 +37,7 @@ echo.
 
 echo Step 4: Seeding database with initial data...
 python prisma\seed.py
+python prisma/seed_auth.py
 if %errorlevel% neq 0 (
     echo ERROR: Failed to seed database
     pause
