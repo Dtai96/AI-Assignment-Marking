@@ -14,6 +14,35 @@ class Question(BaseModel):
     rubric: str
 
 
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
+    full_name: str
+    role: str = "teacher"
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: str
+    username: str
+    email: str
+    full_name: str
+    role: str
+    is_active: bool
+    created_at: datetime
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserResponse
+
+
 class Submission(BaseModel):
     StudentID: str
     QuestID: str

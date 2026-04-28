@@ -6,3 +6,6 @@ rank-bm25
 python-dotenv
 python-multipart
 prisma
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==4.0.1
