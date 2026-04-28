@@ -11,10 +11,10 @@ interface SubmissionsTableProps {
 export default function SubmissionsTable({ submissions, onGradeComplete }: SubmissionsTableProps) {
   const [gradingId, setGradingId] = useState<string | null>(null);
 
-  const handleGrade = async (studentId: string) => {
+  const handleGrade = async (studentId: string, questId: string) => {
     setGradingId(studentId);
     try {
-      await gradeSubmission(studentId);
+      await gradeSubmission(studentId, questId);
       onGradeComplete();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Grading failed");
@@ -53,6 +53,7 @@ export default function SubmissionsTable({ submissions, onGradeComplete }: Submi
         <thead>
           <tr>
             <th>Student ID</th>
+            <th>Question ID</th>
             <th>Gemini Grade</th>
             <th>Plagiarism Risk</th>
             <th>Draft Feedback</th>
@@ -61,9 +62,12 @@ export default function SubmissionsTable({ submissions, onGradeComplete }: Submi
         </thead>
         <tbody>
           {submissions.map((sub) => (
-            <tr key={sub.student_id}>
+            <tr key={`${sub.student_id}-${sub.quest_id}`}>
               <td style={{ fontWeight: 600, color: "var(--accent)" }}>
                 {sub.student_id}
+              </td>
+              <td style={{ fontWeight: 600, color: "var(--text-secondary)" }}>
+                {sub.quest_id}
               </td>
               <td>
                 {sub.score !== null ? (
@@ -93,7 +97,7 @@ export default function SubmissionsTable({ submissions, onGradeComplete }: Submi
               <td>
                 <button
                   className="btn-secondary"
-                  onClick={() => handleGrade(sub.student_id)}
+                  onClick={() => handleGrade(sub.student_id, sub.quest_id)}
                   disabled={gradingId === sub.student_id}
                   style={{ fontSize: "0.8rem" }}
                 >
