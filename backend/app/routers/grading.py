@@ -19,7 +19,17 @@ async def grade_single(student_id: str, quest_id: str = "Q001"):
         )
 
     try:
-        result = grade_submission(submission.submission)
+        print(submission)
+        # Fetch the rubric from the database
+        question = await storage.store.get_question(quest_id)
+        rubric = question.rubric if question else ""
+        if question is None or rubric == "":
+            raise HTTPException(
+                status_code=404,
+                detail=f"Question not found for question ID: {quest_id}",
+            )
+
+        result = grade_submission(submission.submission, rubric)
     except Exception as e:
         raise HTTPException(
             status_code=502,
@@ -61,7 +71,10 @@ async def grade_all():
         student_id = submission.StudentID
         quest_id = submission.QuestID
         try:
-            result = grade_submission(submission.submission)
+            # Fetch the rubric from the database
+            question = await storage.store.get_question(quest_id)
+            rubric = question.rubric if question else ""
+            result = grade_submission(submission.submission, rubric)
             graded_at = datetime.now(timezone.utc)
             submission_data = {
                 "StudentID": student_id,

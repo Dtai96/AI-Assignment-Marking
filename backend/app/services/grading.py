@@ -5,7 +5,7 @@ from app.config import GEMINI_API_KEY, GEMINI_MODEL
 from app.rubric import MASTER_RUBRIC
 
 
-def grade_submission(text: str) -> dict:
+def grade_submission(text: str, rubric: str) -> dict:
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not configured in .env")
 
@@ -15,7 +15,7 @@ def grade_submission(text: str) -> dict:
         model=GEMINI_MODEL,
         contents=f"Grade the following student submission:\n\n{text}",
         config=types.GenerateContentConfig(
-            system_instruction=MASTER_RUBRIC,
+            system_instruction=MASTER_RUBRIC + rubric,
             response_mime_type="application/json",
             temperature=0.3,
         ),
