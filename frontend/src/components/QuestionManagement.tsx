@@ -101,7 +101,7 @@ export default function QuestionManagement({ onQuestionAdded }: QuestionManageme
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <SearchBar 
-        placeholder="Search Student ID, Name or Class..." 
+        placeholder="Search Question ID or Prompt..." 
         onSearch={(val) => setSearchTerm(val)} 
       />
       <div style={{ backgroundColor: "var(--bg-surface)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "20px" }}>
