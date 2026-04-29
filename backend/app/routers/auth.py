@@ -47,9 +47,9 @@ async def register(user_data: UserCreate):
         "is_active": True
     })
     
-    # Create access token
+    # Create access token with role information
     access_token = create_access_token(
-        data={"sub": user.id, "username": user.username}
+        data={"sub": user.id, "username": user.username, "role": user.role}
     )
     
     return Token(
@@ -79,9 +79,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Create access token
+    # Create access token with role information
     access_token = create_access_token(
-        data={"sub": user.id, "username": user.username}
+        data={"sub": user.id, "username": user.username, "role": user.role}
     )
     
     return Token(

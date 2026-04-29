@@ -1,14 +1,33 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from prisma import Prisma
+from app.database import db
 from app import storage
 from app.models import GradeResponse, GradeAllResponse, GradeAllResult
 from app.services.grading import grade_submission
+from app.services.auth import get_current_user, oauth2_scheme
+from app.services.rbac import is_student_role, is_teacher_or_admin
 
 router = APIRouter()
 
 
 @router.post("/grade/{student_id}", response_model=GradeResponse)
-async def grade_single(student_id: str, quest_id: str = "Q001"):
+async def grade_single(
+    student_id: str, 
+    quest_id: str = "Q001",
+    token: str = Depends(oauth2_scheme)
+):
+    """Grade a single submission - Only teachers and admins can grade"""
+    # Authenticate user
+    user = await get_current_user(db, token)
+    
+    # Check if user has permission to grade
+    if is_student_role(user):
+        raise HTTPException(
+            status_code=403,
+            detail="Students cannot grade submissions"
+        )
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     submission = await storage.store.get(student_id, quest_id)
@@ -57,7 +76,18 @@ async def grade_single(student_id: str, quest_id: str = "Q001"):
 
 
 @router.post("/grade-all", response_model=GradeAllResponse)
-async def grade_all():
+async def grade_all(token: str = Depends(oauth2_scheme)):
+    """Grade all submissions - Only teachers and admins can grade"""
+    # Authenticate user
+    user = await get_current_user(db, token)
+    
+    # Check if user has permission to grade
+    if is_student_role(user):
+        raise HTTPException(
+            status_code=403,
+            detail="Students cannot grade submissions"
+        )
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     all_subs = await storage.store.get_all()

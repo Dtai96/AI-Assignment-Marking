@@ -1,11 +1,15 @@
 import re
 from datetime import datetime, timezone
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends
+from prisma import Prisma
+from app.database import db
 from app.config import UPLOADS_DIR
 from app.models import UploadResponse
 from app import storage
 from app.services.pdf_parser import extract_text_from_pdf
 from app.services.plagiarism import check_plagiarism
+from app.services.auth import get_current_user, oauth2_scheme
+from app.services.rbac import is_student_role
 
 router = APIRouter()
 
@@ -13,7 +17,22 @@ STUDENT_ID_PATTERN = re.compile(r"^(S\d+)[_\-]")
 
 
 @router.post("/upload", response_model=UploadResponse)
-async def upload_submission(file: UploadFile = File(...), quest_id: str = Form(default="Q001")):
+async def upload_submission(
+    file: UploadFile = File(...), 
+    quest_id: str = Form(default="Q001"),
+    token: str = Depends(oauth2_scheme)
+):
+    """Upload a submission - Only teachers and admins can upload"""
+    # Authenticate user
+    user = await get_current_user(db, token)
+    
+    # Check if user has permission to upload
+    if is_student_role(user):
+        raise HTTPException(
+            status_code=403,
+            detail="Students cannot upload submissions"
+        )
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     if not file.filename or not file.filename.lower().endswith(".pdf"):

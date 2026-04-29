@@ -78,7 +78,9 @@ export async function getCurrentUser() {
 }
 
 export async function getSubmissions(): Promise<SubmissionListResponse> {
-  const res = await fetch(`${API_BASE}/submissions`);
+  const res = await fetch(`${API_BASE}/submissions`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`Failed to fetch submissions: ${res.statusText}`);
   return res.json();
 }
@@ -90,6 +92,7 @@ export async function uploadPdf(file: File, questId: string = "Q001"): Promise<U
   const res = await fetch(`${API_BASE}/upload`, {
     method: "POST",
     body: formData,
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -101,6 +104,7 @@ export async function uploadPdf(file: File, questId: string = "Q001"): Promise<U
 export async function gradeSubmission(studentId: string, questId: string = "Q001"): Promise<GradeResponse> {
   const res = await fetch(`${API_BASE}/grade/${studentId}?quest_id=${questId}`, {
     method: "POST",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -112,6 +116,7 @@ export async function gradeSubmission(studentId: string, questId: string = "Q001
 export async function gradeAll(): Promise<GradeAllResponse> {
   const res = await fetch(`${API_BASE}/grade-all`, {
     method: "POST",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -122,7 +127,9 @@ export async function gradeAll(): Promise<GradeAllResponse> {
 
 // Student endpoints
 export async function getStudents(): Promise<StudentListResponse> {
-  const res = await fetch(`${API_BASE}/students`);
+  const res = await fetch(`${API_BASE}/students`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`Failed to fetch students: ${res.statusText}`);
   return res.json();
 }
@@ -130,7 +137,7 @@ export async function getStudents(): Promise<StudentListResponse> {
 export async function createStudent(student: Student): Promise<{ student: Student; message: string }> {
   const res = await fetch(`${API_BASE}/students`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(student),
   });
   if (!res.ok) {
@@ -143,7 +150,7 @@ export async function createStudent(student: Student): Promise<{ student: Studen
 export async function updateStudent(studentId: string, student: Student): Promise<{ student: Student; message: string }> {
   const res = await fetch(`${API_BASE}/students/${studentId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(student),
   });
   if (!res.ok) {
@@ -156,6 +163,7 @@ export async function updateStudent(studentId: string, student: Student): Promis
 export async function deleteStudent(studentId: string): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/students/${studentId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -166,7 +174,9 @@ export async function deleteStudent(studentId: string): Promise<{ message: strin
 
 // Question endpoints
 export async function getQuestions(): Promise<QuestionListResponse> {
-  const res = await fetch(`${API_BASE}/questions`);
+  const res = await fetch(`${API_BASE}/questions`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`Failed to fetch questions: ${res.statusText}`);
   return res.json();
 }
@@ -174,7 +184,7 @@ export async function getQuestions(): Promise<QuestionListResponse> {
 export async function createQuestion(question: Question): Promise<{ question: Question; message: string }> {
   const res = await fetch(`${API_BASE}/questions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(question),
   });
   if (!res.ok) {
@@ -187,7 +197,7 @@ export async function createQuestion(question: Question): Promise<{ question: Qu
 export async function updateQuestion(questId: string, question: Question): Promise<{ question: Question; message: string }> {
   const res = await fetch(`${API_BASE}/questions/${questId}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(question),
   });
   if (!res.ok) {
@@ -200,6 +210,7 @@ export async function updateQuestion(questId: string, question: Question): Promi
 export async function deleteQuestion(questId: string): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/questions/${questId}`, {
     method: "DELETE",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -223,6 +234,72 @@ export async function changePassword(currentPassword: string, newPassword: strin
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || 'Failed to change password');
+  }
+
+  return res.json();
+}
+
+// Admin: User management endpoints
+export async function getAllUsers() {
+  const res = await fetch(`${API_BASE}/admin/users`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch users');
+  }
+
+  return res.json();
+}
+
+export async function createUser(userData: {
+  username: string;
+  email: string;
+  password: string;
+  full_name: string;
+  role: string;
+}) {
+  const res = await fetch(`${API_BASE}/admin/users`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(userData),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to create user');
+  }
+
+  return res.json();
+}
+
+export async function updateUser(
+  userId: string,
+  userData: { role: string; is_active: boolean }
+) {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(userData),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to update user');
+  }
+
+  return res.json();
+}
+
+export async function deleteUser(userId: string) {
+  const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to delete user');
   }
 
   return res.json();

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { gradeAll } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 
 interface GradeActionsProps {
   ungradedCount: number;
@@ -7,8 +8,14 @@ interface GradeActionsProps {
 }
 
 export default function GradeActions({ ungradedCount, onGradeComplete }: GradeActionsProps) {
+  const { isStudent } = useAuth();
   const [grading, setGrading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+
+  // Students cannot grade submissions
+  if (isStudent) {
+    return null;
+  }
 
   const handleGradeAll = async () => {
     setGrading(true);

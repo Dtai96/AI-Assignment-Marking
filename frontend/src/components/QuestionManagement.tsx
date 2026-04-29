@@ -3,12 +3,14 @@ import { getQuestions, createQuestion, updateQuestion, deleteQuestion } from "..
 import type { Question } from "../types";
 import SearchBar from "./SearchBar";
 import RubricAccordion from "./RubricAccordion";
+import { useAuth } from "../context/AuthContext";
 
 interface QuestionManagementProps {
   onQuestionAdded?: () => void;
 }
 
 export default function QuestionManagement({ onQuestionAdded }: QuestionManagementProps) {
+  const { isAdmin, isTeacher } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -105,9 +107,11 @@ export default function QuestionManagement({ onQuestionAdded }: QuestionManageme
       <div style={{ backgroundColor: "var(--bg-surface)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Questions</h2>
-          <button className="btn-primary" onClick={() => setShowForm(true)} disabled={showForm}>
-            Add Question
-          </button>
+          {(isAdmin || isTeacher) && (
+            <button className="btn-primary" onClick={() => setShowForm(true)} disabled={showForm}>
+              Add Question
+            </button>
+          )}
         </div>
 
         {error && (
@@ -188,12 +192,16 @@ export default function QuestionManagement({ onQuestionAdded }: QuestionManageme
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <button className="btn-secondary" onClick={() => handleEdit(question)} style={{ fontSize: "0.8rem", padding: "4px 12px" }}>
-                          Edit
-                        </button>
-                        <button className="btn-secondary" onClick={() => handleDelete(question.QuestID)} style={{ fontSize: "0.8rem", padding: "4px 12px", color: "var(--danger)" }}>
-                          Delete
-                        </button>
+                        {(isAdmin || isTeacher) && (
+                          <button className="btn-secondary" onClick={() => handleEdit(question)} style={{ fontSize: "0.8rem", padding: "4px 12px" }}>
+                            Edit
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button className="btn-secondary" onClick={() => handleDelete(question.QuestID)} style={{ fontSize: "0.8rem", padding: "4px 12px", color: "var(--danger)" }}>
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -310,3 +310,67 @@ input[type="file"] {
   color: var(--accent);
   border: 1px solid var(--border);
 }
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(26, 26, 36, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.3) rgba(26, 26, 36, 0.5);
+}
+
+/* Select Dropdown Scrollbar */
+select::-webkit-scrollbar {
+  width: 6px;
+}
+
+select::-webkit-scrollbar-track {
+  background: rgba(18, 18, 26, 0.8);
+  border-radius: 3px;
+}
+
+select::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 3px;
+}
+
+select::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6);
+}
+
+/* Select Dropdown Options Styling */
+select option {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 8px;
+}
+
+select option:hover {
+  background-color: #1a1a24;
+  color: #ffffff;
+}
+
+select option:checked {
+  background-color: #2a2a3a;
+  color: #ffffff;
+  font-weight: 600;
+}

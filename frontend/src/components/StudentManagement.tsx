@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { getStudents, createStudent, updateStudent, deleteStudent } from "../api/client";
 import type { Student } from "../types";
 import SearchBar from "./SearchBar";
+import { useAuth } from "../context/AuthContext";
 
 interface StudentManagementProps {
   onStudentAdded?: () => void;
 }
 
 export default function StudentManagement({ onStudentAdded }: StudentManagementProps) {
+  const { hasPermission } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -106,9 +108,11 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
       <div style={{ backgroundColor: "var(--bg-surface)", borderRadius: "var(--radius)", border: "1px solid var(--border)", padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Students</h2>
-          <button className="btn-primary" onClick={() => setShowForm(true)} disabled={showForm}>
-            Add Student
-          </button>
+          {(hasPermission('create_students')) && (
+            <button className="btn-primary" onClick={() => setShowForm(true)} disabled={showForm}>
+              Add Student
+            </button>
+          )}
         </div>
 
         
@@ -192,12 +196,16 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
                     <td>{student.Class}</td>
                     <td>
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <button className="btn-secondary" onClick={() => handleEdit(student)} style={{ fontSize: "0.8rem", padding: "4px 12px" }}>
-                          Edit
-                        </button>
-                        <button className="btn-secondary" onClick={() => handleDelete(student.StudentID)} style={{ fontSize: "0.8rem", padding: "4px 12px", color: "var(--danger)" }}>
-                          Delete
-                        </button>
+                        {(hasPermission('update_students')) && (
+                          <button className="btn-secondary" onClick={() => handleEdit(student)} style={{ fontSize: "0.8rem", padding: "4px 12px" }}>
+                            Edit
+                          </button>
+                        )}
+                        {(hasPermission('delete_students')) && (
+                          <button className="btn-secondary" onClick={() => handleDelete(student.StudentID)} style={{ fontSize: "0.8rem", padding: "4px 12px", color: "var(--danger)" }}>
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
