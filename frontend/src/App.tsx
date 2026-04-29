@@ -3,13 +3,13 @@ import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import Dashboard from './components/Dashboard';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
-import LandingPage from './components/LandingPage';
-
+import AdminDashboard from './components/AdminDashboard';
+import AdminRoute from './components/AdminRoute';
 
 function AuthenticatedApp() {
   const { isAuthenticated, logout } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   if (isAuthenticated) {
     return <Dashboard onLogout={logout} />;
@@ -24,6 +24,17 @@ function AuthenticatedApp() {
       return <RegisterPage onSwitchToLogin={() => setShowLogin(true)} />;
     }
   }
+
+  // Admin Dashboard with route protection
+  if (showAdminDashboard) {
+    return (
+      <AdminRoute onUnauthorized={() => setShowAdminDashboard(false)}>
+        <AdminDashboard onBack={() => setShowAdminDashboard(false)} />
+      </AdminRoute>
+    );
+  }
+
+  return <Dashboard onLogout={logout} onNavigateToAdmin={() => setShowAdminDashboard(true)} />;
 }
 
 function App() {

@@ -1,13 +1,22 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from prisma import Prisma
+from app.database import db
 from app import storage
 from app.models import Student
+from app.services.auth import get_current_user, oauth2_scheme
+from app.services.rbac import require_teacher_or_admin, require_admin
 
 router = APIRouter()
 
 
 @router.get("/students")
-async def list_students():
-    """Get all students"""
+async def list_students(
+    token: str = Depends(oauth2_scheme)
+):
+    """Get all students - Available to all authenticated users"""
+    # Authenticate user
+    user = await get_current_user(db, token)
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     students = await storage.store.db.student.find_many()
@@ -15,8 +24,15 @@ async def list_students():
 
 
 @router.post("/students")
-async def create_student(student: Student):
-    """Create a new student"""
+async def create_student(
+    student: Student,
+    token: str = Depends(oauth2_scheme)
+):
+    """Create a new student - Requires Teacher or Admin role"""
+    # Authenticate and authorize user
+    user = await get_current_user(db, token)
+    await require_teacher_or_admin(user)
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     existing = await storage.store.get_student(student.StudentID)
@@ -28,8 +44,16 @@ async def create_student(student: Student):
 
 
 @router.put("/students/{student_id}")
-async def update_student(student_id: str, student: Student):
-    """Update a student"""
+async def update_student(
+    student_id: str, 
+    student: Student,
+    token: str = Depends(oauth2_scheme)
+):
+    """Update a student - Requires Teacher or Admin role"""
+    # Authenticate and authorize user
+    user = await get_current_user(db, token)
+    await require_teacher_or_admin(user)
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     existing = await storage.store.get_student(student_id)
@@ -47,8 +71,15 @@ async def update_student(student_id: str, student: Student):
 
 
 @router.delete("/students/{student_id}")
-async def delete_student(student_id: str):
-    """Delete a student"""
+async def delete_student(
+    student_id: str,
+    token: str = Depends(oauth2_scheme)
+):
+    """Delete a student - Requires Admin role only"""
+    # Authenticate and authorize user
+    user = await get_current_user(db, token)
+    await require_admin(user)
+    
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
     existing = await storage.store.get_student(student_id)

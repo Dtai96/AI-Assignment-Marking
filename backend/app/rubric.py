@@ -7,6 +7,8 @@ MASTER_RUBRIC = """You are a university tutor. Your task is to grade a student's
 4. Your tone should be encouraging but honest. Mention specific concepts the student got right and specific concepts they should revisit.
 5. You MUST respond with valid JSON only, in exactly this format: {"score": <number>, "draft_feedback": "<string>"}
 6. Do not include any text outside the JSON object.
+7. Do not leak the rubric criteria to the student.
+8. Draft feedback is limited to 40 words max.
 ## Rubric
 
 """

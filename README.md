@@ -11,6 +11,7 @@ An AI-powered automated grading system that evaluates student PDF submissions us
 - **💾 MySQL Database**: Robust data storage with Prisma ORM for production-ready scalability
 - **👥 Student Management**: Track students, classes, and their submissions
 - **📝 Question & Rubric System**: Configurable grading rubrics per question
+- **🔐 Role-Based Access Control**: Three-tier authentication system (Admin, Teacher, Student)
 
 ## 🚀 Quick Start
 
@@ -250,6 +251,32 @@ curl -X POST http://localhost:8000/api/grade/S10485739
 | `GEMINI_API_KEY` | Google Gemini API key | `AIzaSy...` |
 | `DATABASE_URL` | MySQL connection string | `mysql://root:pass@localhost:3306/ai_marking` |
 
+### 🔐 Role-Based Access Control (RBAC)
+
+The system implements a three-tier role system:
+
+| Role | Permissions |
+|------|-------------|
+| **Admin** | Full access: manage users, students, questions, grade, upload |
+| **Teacher** | Operational access: manage students/questions, grade, upload |
+| **Student** | Read-only: view own submissions only |
+
+**Key Features:**
+- Students can only see their own submissions (matched by username = StudentID)
+- Students cannot upload, grade, or manage content
+- Teachers and Admins have full operational capabilities
+- Only Admins can delete students/questions and manage user accounts
+
+**Migration from Old Versions:**
+
+If upgrading from a version with TA (Teaching Assistant) role, run:
+```bash
+cd backend
+python migrate_ta_to_student.py
+```
+
+📖 **See [ROLE_MIGRATION.md](./ROLE_MIGRATION.md) for detailed migration guide**
+
 ### Database Management
 
 **Reset Database:**
@@ -277,6 +304,8 @@ SELECT StudentID, score, plagiarism_flagged FROM Submission;
 | Port 8000 in use | Change port: `uvicorn app.main:app --reload --port 8001` |
 | Port 5173 in use | Vite will automatically use next available port |
 | Prisma generate fails | Run: `prisma generate --force` |
+| Student sees no submissions | Ensure username matches StudentID (e.g., username="S10485739") |
+| TA users can't login | Run migration: `python migrate_ta_to_student.py` |
 
 ## 📚 Documentation
 

@@ -18,6 +18,10 @@ interface AuthContextType {
   register: (username: string, email: string, fullName: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isTeacher: boolean;
+  isStudent: boolean;
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,8 +90,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.setToken(null);
   };
 
+  // Role-based helper functions
+  const isAdmin = user?.role === 'admin';
+  const isTeacher = user?.role === 'teacher';
+  const isStudent = user?.role === 'student';
+
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+    
+    const rolePermissions: Record<string, string[]> = {
+      admin: ['delete_students', 'delete_questions', 'create_students', 'create_questions', 'update_students', 'update_questions', 'grade', 'upload'],
+      teacher: ['create_students', 'create_questions', 'update_students', 'update_questions', 'grade', 'upload'],
+      student: [],  // Students have no management permissions
+    };
+    
+    return rolePermissions[user.role]?.includes(permission) || false;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      register, 
+      logout, 
+      isAuthenticated: !!token,
+      isAdmin,
+      isTeacher,
+      isStudent,
+      hasPermission
+    }}>
       {children}
     </AuthContext.Provider>
   );

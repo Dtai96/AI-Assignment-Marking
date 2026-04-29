@@ -3,6 +3,7 @@ import type { Submission } from "../types";
 import { gradeSubmission } from "../api/client";
 import PlagiarismBadge from "./PlagiarismBadge";
 import SearchBar from "./SearchBar";
+import { useAuth } from "../context/AuthContext";
 
 interface SubmissionsTableProps {
   submissions: Submission[];
@@ -10,6 +11,7 @@ interface SubmissionsTableProps {
 }
 
 export default function SubmissionsTable({ submissions, onGradeComplete }: SubmissionsTableProps) {
+  const { isStudent } = useAuth();
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -80,7 +82,7 @@ export default function SubmissionsTable({ submissions, onGradeComplete }: Submi
                 <th>Gemini Grade</th>
                 <th>Plagiarism Risk</th>
                 <th>Draft Feedback</th>
-                <th>Action</th>
+                {!isStudent && <th>Action</th>}
               </tr>
             </thead>
             <tbody>
@@ -117,16 +119,18 @@ export default function SubmissionsTable({ submissions, onGradeComplete }: Submi
                       <span style={{ color: "var(--text-muted)" }}>--</span>
                     )}
                   </td>
-                  <td>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => handleGrade(sub.student_id, sub.quest_id)}
-                      disabled={gradingId === sub.student_id}
-                      style={{ fontSize: "0.8rem" }}
-                    >
-                      {gradingId === sub.student_id ? "Grading..." : sub.score !== null ? "Re-grade" : "Grade"}
-                    </button>
-                  </td>
+                  {!isStudent && (
+                    <td>
+                      <button
+                        className="btn-secondary"
+                        onClick={() => handleGrade(sub.student_id, sub.quest_id)}
+                        disabled={gradingId === sub.student_id}
+                        style={{ fontSize: "0.8rem" }}
+                      >
+                        {gradingId === sub.student_id ? "Grading..." : sub.score !== null ? "Re-grade" : "Grade"}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -12,10 +12,12 @@ import { LayoutDashboardIcon, FileTextIcon, UsersIcon } from "./Icons";
 
 interface DashboardProps {
   onLogout: () => void;
+  onNavigateToAdmin?: () => void;
 }
 
-export default function Dashboard({ onLogout }: DashboardProps) {
-  const { user } = useAuth();
+export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProps) {
+  const { user, isAdmin, isTeacher } = useAuth();
+  const isStudent = user?.role === 'student';
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [ungradedCount, setUngradedCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,13 @@ export default function Dashboard({ onLogout }: DashboardProps) {
     fetchData();
   }, [fetchData]);
 
+  // Ensure students can't access restricted tabs
+  useEffect(() => {
+    if (isStudent && (activeTab === "students" || activeTab === "questions")) {
+      setActiveTab("submissions");
+    }
+  }, [isStudent, activeTab]);
+
   // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,12 +66,6 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showProfileMenu]);
-
-  const handleProfileClick = () => {
-    // TODO: Navigate to profile page or open profile modal
-    alert('Profile page coming soon!');
-    setShowProfileMenu(false);
-  };
 
   const handleChangePasswordClick = () => {
     setShowChangePasswordModal(true);
@@ -81,8 +84,29 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           </p>
         </div>
         
-        {/* User Profile Dropdown */}
-        <div style={{ position: "relative" }} ref={menuRef}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Admin Dashboard Button - Only for Admins */}
+          {isAdmin && onNavigateToAdmin && (
+            <button
+              onClick={onNavigateToAdmin}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                borderRadius: "8px",
+                cursor: "pointer",
+                color: "#ef4444",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                transition: "all 0.2s ease"
+              }}
+            >
+              🔐 Admin Dashboard
+            </button>
+          )}
+          
+          {/* User Profile Dropdown */}
+          <div style={{ position: "relative" }} ref={menuRef}>
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             style={{
@@ -103,7 +127,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
               width: "32px",
               height: "32px",
               borderRadius: "50%",
-              backgroundColor: "#3b82f6",
+              backgroundColor: isAdmin ? "#ef4444" : isTeacher ? "#3b82f6" : isStudent ? "#10b981" : "#f59e0b",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -116,6 +140,19 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             {/* User Name */}
             <span style={{ fontWeight: 500, fontSize: "0.875rem" }}>
               {user?.full_name || user?.username || 'User'}
+            </span>
+            
+            {/* Role Badge */}
+            <span style={{
+              fontSize: "0.65rem",
+              fontWeight: 600,
+              padding: "2px 8px",
+              borderRadius: "12px",
+              backgroundColor: isAdmin ? "rgba(239, 68, 68, 0.2)" : isTeacher ? "rgba(59, 130, 246, 0.2)" : isStudent ? "rgba(16, 185, 129, 0.2)" : "rgba(245, 158, 11, 0.2)",
+              color: isAdmin ? "#ef4444" : isTeacher ? "#3b82f6" : isStudent ? "#10b981" : "#f59e0b",
+              textTransform: "uppercase"
+            }}>
+              {user?.role || 'user'}
             </span>
             
             {/* Dropdown Arrow */}
@@ -205,6 +242,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             </div>
           )}
         </div>
+        </div>
       </header>
 
       {/* Tab Navigation */}
@@ -219,8 +257,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       }}>
         {[
           { id: "submissions", label: "Submissions", icon: <FileTextIcon size={18} /> },
-          { id: "students", label: "Students", icon: <UsersIcon size={18} /> },
-          { id: "questions", label: "Questions", icon: <LayoutDashboardIcon size={18} /> }
+          ...(!isStudent ? [
+            { id: "students", label: "Students", icon: <UsersIcon size={18} /> },
+            { id: "questions", label: "Questions", icon: <LayoutDashboardIcon size={18} /> }
+          ] : [])
         ].map((tab) => (
           <button
             key={tab.id}
@@ -249,7 +289,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       {/* Tab Content */}
       {activeTab === "submissions" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <FileUpload onUploadComplete={fetchData} />
+          {!isStudent && <FileUpload onUploadComplete={fetchData} />}
 
           <div
             style={{
