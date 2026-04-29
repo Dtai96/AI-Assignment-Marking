@@ -50,7 +50,7 @@ DATABASE_URL=mysql://root:your_password@localhost:3306/ai_marking
 
 ### 4. Install Dependencies & Setup Database
 
-**Windows (Automated):**
+**Windows (Automated):** Run from the `backend/` folder — this will create & activate the Python virtual environment, install all Python dependencies, generate the Prisma client, push the schema, and seed the database:
 ```bash
 cd backend
 setup_database.bat
@@ -59,6 +59,10 @@ setup_database.bat
 **Manual Setup:**
 ```bash
 cd backend
+
+# Create and activate Python virtual environment
+python -m venv venv
+venv\Scripts\activate
 
 # Install Python dependencies
 pip install -r requirements.txt
@@ -71,6 +75,7 @@ prisma db push
 
 # Seed database with sample data
 python prisma/seed.py
+python prisma/seed_auth.py
 ```
 
 ### 5. Install Frontend Dependencies
@@ -82,13 +87,21 @@ npm install
 
 ### 6. Run the Application
 
-**Terminal 1 - Backend (FastAPI):**
+**Option A — One-click (Recommended):** From the project root, run the provided batch script which opens both servers in separate terminal windows:
+```bash
+run.bat
+```
+
+**Option B — Manual (two terminals):**
+
+_Terminal 1 — Backend (FastAPI):_
 ```bash
 cd backend
+venv\Scripts\activate
 uvicorn app.main:app --reload
 ```
 
-**Terminal 2 - Frontend (React):**
+_Terminal 2 — Frontend (React + Vite):_
 ```bash
 cd frontend
 npm run dev
@@ -192,6 +205,7 @@ marking-engine/
 │   │   └── styles/            # CSS styles
 │   └── package.json
 ├── screenshots/               # App screenshots
+├── run.bat                    # One-click launcher (backend + frontend)
 └── README.md
 ```
 
@@ -306,6 +320,8 @@ SELECT StudentID, score, plagiarism_flagged FROM Submission;
 | Prisma generate fails | Run: `prisma generate --force` |
 | Student sees no submissions | Ensure username matches StudentID (e.g., username="S10485739") |
 | TA users can't login | Run migration: `python migrate_ta_to_student.py` |
+| `venv` not found on run | Run `setup_database.bat` first to create the virtual environment |
+| `python` not recognized | Ensure Python 3.8+ is installed and added to your system PATH |
 
 ## 📚 Documentation
 
