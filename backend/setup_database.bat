@@ -4,7 +4,25 @@ echo Database Setup for AI Assignment Marking
 echo ========================================
 echo.
 
-echo Step 1: Installing dependencies...
+echo Step 1: Setting up Python virtual environment...
+if not exist venv (
+    echo Creating virtual environment...
+    python -m venv venv
+    if %errorlevel% neq 0 (
+        echo ERROR: Failed to create virtual environment
+        echo Please ensure Python 3.8+ is installed and on your PATH
+        pause
+        exit /b 1
+    )
+    echo Virtual environment created.
+) else (
+    echo Virtual environment already exists, skipping creation.
+)
+echo Activating virtual environment...
+call venv\Scripts\activate.bat
+echo.
+
+echo Step 2: Installing dependencies...
 pip install -r requirements.txt
 if %errorlevel% neq 0 (
     echo ERROR: Failed to install dependencies
@@ -13,7 +31,7 @@ if %errorlevel% neq 0 (
 )
 echo.
 
-echo Step 2: Generating Prisma client...
+echo Step 3: Generating Prisma client...
 prisma generate
 if %errorlevel% neq 0 (
     echo ERROR: Failed to generate Prisma client
@@ -22,7 +40,7 @@ if %errorlevel% neq 0 (
 )
 echo.
 
-echo Step 3: Pushing schema to database...
+echo Step 4: Pushing schema to database...
 prisma db push
 if %errorlevel% neq 0 (
     echo ERROR: Failed to push schema to database
@@ -35,7 +53,7 @@ if %errorlevel% neq 0 (
 )
 echo.
 
-echo Step 4: Seeding database with initial data...
+echo Step 5: Seeding database with initial data...
 python prisma\seed.py
 python prisma/seed_auth.py
 if %errorlevel% neq 0 (
