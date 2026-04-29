@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getQuestions, createQuestion, updateQuestion, deleteQuestion } from "../api/client";
 import type { Question } from "../types";
 import SearchBar from "./SearchBar";
+import RubricAccordion from "./RubricAccordion";
 
 interface QuestionManagementProps {
   onQuestionAdded?: () => void;
@@ -143,13 +144,9 @@ export default function QuestionManagement({ onQuestionAdded }: QuestionManageme
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "4px", fontSize: "0.875rem" }}>Rubric *</label>
-                <textarea
+                <RubricAccordion
                   value={formData.rubric}
-                  onChange={(e) => setFormData({ ...formData, rubric: e.target.value })}
-                  required
-                  rows={4}
-                  style={{ width: "100%", padding: "8px", border: "1px solid var(--border)", borderRadius: "4px", resize: "vertical" }}
-                  placeholder="Grading rubric and criteria"
+                  onChange={(rubricText) => setFormData({ ...formData, rubric: rubricText })}
                 />
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
