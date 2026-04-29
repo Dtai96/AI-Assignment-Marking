@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronRightIcon, XIcon, PlusIcon } from "./Icons";
 
 interface RubricItem {
   id: string;
@@ -185,9 +186,10 @@ export default function RubricAccordion({ value, onChange }: RubricAccordionProp
 
   if (rubricItems.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
-        <p>No rubric sections yet. Click "Add Section" to create one.</p>
-        <button className="btn-primary" onClick={addItem} style={{ marginTop: '12px' }}>
+      <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+        <p style={{ fontSize: '1rem', marginBottom: '16px' }}>No rubric sections yet. Click "Add Section" to create one.</p>
+        <button className="btn-primary" onClick={addItem} style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto' }}>
+          <PlusIcon size={18} />
           Add Section
         </button>
       </div>
@@ -211,26 +213,26 @@ export default function RubricAccordion({ value, onChange }: RubricAccordionProp
             style={{
               display: 'flex',
               alignItems: 'center',
-              padding: '12px 16px',
+              padding: '14px 18px',
               backgroundColor: 'var(--bg-secondary)',
               cursor: 'pointer',
               gap: '12px'
             }}
             onClick={() => toggleItem(item.id)}
           >
-            <span style={{ fontSize: '1.2rem', transform: expandedItems.has(item.id) ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
-              ▶
+            <span style={{ transform: expandedItems.has(item.id) ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s', display: 'flex' }}>
+              <ChevronRightIcon size={20} />
             </span>
-            <span style={{ fontWeight: 600, flex: 1 }}>
+            <span style={{ fontWeight: 600, flex: 1, fontSize: '1.0625rem' }}>
               {index + 1}. {item.title}
             </span>
-            <span style={{ color: 'var(--accent)', fontWeight: 600 }}>
+            <span style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.9375rem' }}>
               (0-{item.maxPoints} points)
             </span>
             <button
               type="button"
               className="btn-secondary"
-              style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+              style={{ fontSize: '0.875rem', padding: '6px 12px' }}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteItem(item.id);
@@ -242,33 +244,33 @@ export default function RubricAccordion({ value, onChange }: RubricAccordionProp
 
           {/* Accordion Content */}
           {expandedItems.has(item.id) && (
-            <div style={{ padding: '16px' }}>
+            <div style={{ padding: '20px' }}>
               {/* Section Title Editor */}
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem' }}>Section Title</label>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9375rem', fontWeight: 600 }}>Section Title</label>
                 <input
                   type="text"
                   value={item.title}
                   onChange={(e) => updateItem(item.id, { title: e.target.value })}
-                  style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '4px' }}
+                  style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '1rem', backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)' }}
                 />
               </div>
 
               {/* Max Points Editor */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.875rem' }}>Max Points</label>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.9375rem', fontWeight: 600 }}>Max Points</label>
                 <input
                   type="number"
                   value={item.maxPoints}
                   onChange={(e) => updateItem(item.id, { maxPoints: parseInt(e.target.value) || 0 })}
                   min="0"
-                  style={{ width: '100px', padding: '8px', border: '1px solid var(--border)', borderRadius: '4px' }}
+                  style={{ width: '120px', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '1rem', backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)' }}
                 />
               </div>
 
               {/* Criteria List */}
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 600 }}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.9375rem', fontWeight: 600 }}>
                   Criteria
                 </label>
                 
@@ -277,37 +279,39 @@ export default function RubricAccordion({ value, onChange }: RubricAccordionProp
                     key={criteria.id}
                     style={{
                       display: 'flex',
-                      gap: '8px',
-                      marginBottom: '8px',
+                      gap: '10px',
+                      marginBottom: '12px',
                       alignItems: 'flex-start'
                     }}
                   >
-                    <span style={{ color: 'var(--text-muted)', paddingTop: '8px' }}>{cIndex + 1}.</span>
+                    <span style={{ color: 'var(--text-muted)', paddingTop: '10px', fontSize: '0.9375rem' }}>{cIndex + 1}.</span>
                     <div style={{ flex: 1 }}>
                       <input
                         type="text"
                         value={criteria.description}
                         onChange={(e) => updateCriterion(item.id, criteria.id, { description: e.target.value })}
-                        style={{ width: '100%', padding: '8px', border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '4px' }}
+                        style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', marginBottom: '6px', fontSize: '0.9375rem', backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)' }}
                         placeholder="Criterion description"
                       />
-                      <input
-                        type="number"
-                        value={criteria.maxPoints}
-                        onChange={(e) => updateCriterion(item.id, criteria.id, { maxPoints: parseInt(e.target.value) || 0 })}
-                        min="0"
-                        style={{ width: '100px', padding: '4px', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '0.875rem' }}
-                        placeholder="Max points"
-                      />
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '8px' }}>points</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="number"
+                          value={criteria.maxPoints}
+                          onChange={(e) => updateCriterion(item.id, criteria.id, { maxPoints: parseInt(e.target.value) || 0 })}
+                          min="0"
+                          style={{ width: '120px', padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.9375rem', backgroundColor: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                          placeholder="Max points"
+                        />
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>points</span>
+                      </div>
                     </div>
                     <button
                       type="button"
                       className="btn-secondary"
-                      style={{ fontSize: '0.75rem', padding: '4px 8px', color: 'var(--danger)' }}
+                      style={{ fontSize: '0.875rem', padding: '6px', color: 'var(--danger)', display: 'flex', alignItems: 'center' }}
                       onClick={() => deleteCriterion(item.id, criteria.id)}
                     >
-                      ✕
+                      <XIcon size={16} />
                     </button>
                   </div>
                 ))}
@@ -315,10 +319,11 @@ export default function RubricAccordion({ value, onChange }: RubricAccordionProp
                 <button
                   type="button"
                   className="btn-secondary"
-                  style={{ fontSize: '0.8rem', padding: '6px 12px', marginTop: '8px' }}
+                  style={{ fontSize: '0.9375rem', padding: '8px 16px', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}
                   onClick={() => addCriterion(item.id)}
                 >
-                  + Add Criterion
+                  <PlusIcon size={16} />
+                  Add Criterion
                 </button>
               </div>
             </div>
@@ -330,9 +335,10 @@ export default function RubricAccordion({ value, onChange }: RubricAccordionProp
         type="button"
         className="btn-primary"
         onClick={addItem}
-        style={{ marginTop: '8px' }}
+        style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}
       >
-        + Add Section
+        <PlusIcon size={18} />
+        Add Section
       </button>
     </div>
   );

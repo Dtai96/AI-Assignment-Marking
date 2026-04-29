@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
+import { GraduationCapIcon } from './Icons';
 
 interface RegisterPageProps {
   onSwitchToLogin: () => void;
@@ -44,7 +45,10 @@ export default function RegisterPage({ onSwitchToLogin }: RegisterPageProps) {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>🎓 AI Assignment Marking</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
+            <GraduationCapIcon size={40} color="var(--accent)" />
+            <h1 style={{ margin: 0 }}>AI Assignment Marking</h1>
+          </div>
           <p>Create your account</p>
         </div>
 

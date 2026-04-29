@@ -8,6 +8,7 @@ import StudentManagement from "./StudentManagement";
 import QuestionManagement from "./QuestionManagement";
 import { useAuth } from "../context/AuthContext";
 import ChangePasswordModal from "./ChangePasswordModal";
+import { LayoutDashboardIcon, FileTextIcon, UsersIcon } from "./Icons";
 
 interface DashboardProps {
   onLogout: () => void;
@@ -217,25 +218,29 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         width: "fit-content"
       }}>
         {[
-          { id: "submissions", label: "📄 Submissions" },
-          { id: "students", label: "👨‍🎓 Students" },
-          { id: "questions", label: "❓ Questions" }
+          { id: "submissions", label: "Submissions", icon: <FileTextIcon size={18} /> },
+          { id: "students", label: "Students", icon: <UsersIcon size={18} /> },
+          { id: "questions", label: "Questions", icon: <LayoutDashboardIcon size={18} /> }
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as "submissions" | "students" | "questions")}
             style={{
-              padding: "10px 20px",
-              borderRadius: "6px",
+              padding: "12px 24px",
+              borderRadius: "var(--radius)",
               border: "none",
               cursor: "pointer",
-              fontSize: "0.875rem",
+              fontSize: "1rem",
               fontWeight: activeTab === tab.id ? 600 : 500,
-              backgroundColor: activeTab === tab.id ? "#3b82f6" : "transparent",
-              color: activeTab === tab.id ? "#ffffff" : "#94a3b8",
-              transition: "all 0.2s ease"
+              backgroundColor: activeTab === tab.id ? "var(--accent)" : "transparent",
+              color: activeTab === tab.id ? "#ffffff" : "var(--text-secondary)",
+              transition: "all 0.2s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
             }}
           >
+            {tab.icon}
             {tab.label}
           </button>
         ))}
