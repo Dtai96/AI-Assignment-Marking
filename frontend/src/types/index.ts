@@ -1,7 +1,24 @@
+export interface Classroom {
+  ClassID: string;
+  ClassName: string;
+  ClassSubject: string;
+}
+
 export interface Student {
   StudentID: string;
   Name: string;
-  Class: string;
+  ClassID: string;
+  UserID?: string | null;
+}
+
+export interface Assignment {
+  AssignmentID: string;
+  ClassID: string;
+  QuestID: string;
+  assigned_at: string;
+  class_name?: string | null;
+  class_subject?: string | null;
+  question_prompt?: string | null;
 }
 
 export interface Question {
@@ -64,5 +81,15 @@ export interface StudentListResponse {
 
 export interface QuestionListResponse {
   questions: Question[];
+  total: number;
+}
+
+export interface ClassListResponse {
+  classes: Classroom[];
+  total: number;
+}
+
+export interface AssignmentListResponse {
+  assignments: Assignment[];
   total: number;
 }

@@ -7,8 +7,12 @@ import type {
   GradeAllResponse,
   StudentListResponse,
   QuestionListResponse,
+  ClassListResponse,
+  AssignmentListResponse,
   Student,
   Question,
+  Classroom,
+  Assignment,
 } from "../types";
 
 // Authentication token management
@@ -287,5 +291,82 @@ export async function deleteUser(userId: string) {
     throw new Error(err.detail || 'Failed to delete user');
   }
 
+  return res.json();
+}
+
+// Class endpoints
+export async function getClasses(): Promise<ClassListResponse> {
+  const res = await fetch(`${API_BASE}/classes`, { headers: getAuthHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch classes: ${res.statusText}`);
+  return res.json();
+}
+
+export async function createClass(data: Classroom): Promise<{ class: Classroom; message: string }> {
+  const res = await fetch(`${API_BASE}/classes`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to create class');
+  }
+  return res.json();
+}
+
+export async function updateClass(classId: string, data: Classroom): Promise<{ class: Classroom; message: string }> {
+  const res = await fetch(`${API_BASE}/classes/${classId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to update class');
+  }
+  return res.json();
+}
+
+export async function deleteClass(classId: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/classes/${classId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to delete class');
+  }
+  return res.json();
+}
+
+// Assignment endpoints
+export async function getAssignments(): Promise<AssignmentListResponse> {
+  const res = await fetch(`${API_BASE}/assignments`, { headers: getAuthHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch assignments: ${res.statusText}`);
+  return res.json();
+}
+
+export async function createAssignment(data: { ClassID: string; QuestID: string }): Promise<{ assignment: Assignment; message: string }> {
+  const res = await fetch(`${API_BASE}/assignments`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to create assignment');
+  }
+  return res.json();
+}
+
+export async function deleteAssignment(assignmentId: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/assignments/${assignmentId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to delete assignment');
+  }
   return res.json();
 }
