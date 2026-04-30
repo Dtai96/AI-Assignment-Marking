@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getAssignments, createAssignment, deleteAssignment, getClasses, getQuestions } from "../api/client";
 import type { Assignment, Classroom, Question } from "../types";
 import { useAuth } from "../context/AuthContext";
+import SearchBar from "./SearchBar";
 
 export default function AssignmentManagement() {
   const { isAdmin, isTeacher, user } = useAuth();
@@ -13,6 +14,7 @@ export default function AssignmentManagement() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Form state (teacher/admin only)
   const [showForm, setShowForm] = useState(false);
@@ -37,6 +39,16 @@ export default function AssignmentManagement() {
       setLoading(false);
     }
   };
+
+  const filteredData = assignments.filter(question => {
+    const searchStr = searchTerm.toLowerCase();
+    return (
+      question.QuestID.toLowerCase().includes(searchStr) ||
+      question.class_subject?.toLowerCase().includes(searchStr) ||
+      question.class_name?.toLowerCase().includes(searchStr) ||
+      question.ClassID.toLowerCase().includes(searchStr)
+    );
+  });
 
   useEffect(() => {
     fetchData();
@@ -73,11 +85,15 @@ export default function AssignmentManagement() {
       <div style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
         Loading assignments...
       </div>
-    );
+    )
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <SearchBar 
+        placeholder="Search Question ID, Class Name, Class ID or Subject..." 
+        onSearch={(val) => setSearchTerm(val)} 
+      />
       <div style={{
         backgroundColor: "var(--bg-surface)",
         border: "1px solid var(--border)",
@@ -209,8 +225,12 @@ export default function AssignmentManagement() {
         {assignments.length === 0 ? (
           <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
             {isStudent
-              ? "No assignments for your class yet."
-              : "No assignments yet. Use the button above to assign a question to a class."}
+            ? "No assignments for your class yet."
+            : "No assignments yet. Use the button above to assign a question to a class."}
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+            No results found {searchTerm}
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>

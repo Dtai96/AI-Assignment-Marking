@@ -7,7 +7,7 @@ interface SearchBarProps {
 
 export default function SearchBar({ placeholder, onSearch }: SearchBarProps) {
   return (
-    <div style={{ marginBottom: "20px", position: "relative", maxWidth: "400px" }}>
+    <div style={{ marginBottom: "20px", position: "relative", maxWidth: "460px" }}>
       <span style={{ 
         position: "absolute", left: "12px", top: "50%", 
         transform: "translateY(-50%)", color: "var(--text-muted)" 
