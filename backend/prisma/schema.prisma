@@ -7,11 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Classroom {
+  ClassID      String       @id
+  ClassName    String
+  ClassSubject String
+  students     Student[]
+  assignments  Assignment[]
+}
+
 model Student {
   StudentID    String       @id
   Name         String
-  Class        String
+  ClassID      String
+  UserID       String?      @unique
   submissions  Submission[]
+  classroom    Classroom    @relation(fields: [ClassID], references: [ClassID])
+  user         User?        @relation(fields: [UserID], references: [id])
 }
 
 model User {
@@ -25,6 +36,7 @@ model User {
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
   submissions   Submission[]
+  student       Student?
 }
 
 model Question {
@@ -32,6 +44,18 @@ model Question {
   prompt       String       @db.Text
   rubric       String       @db.Text
   submissions  Submission[]
+  assignments  Assignment[]
+}
+
+model Assignment {
+  AssignmentID String   @id @default(cuid())
+  ClassID      String
+  QuestID      String
+  assigned_at  DateTime @default(now())
+  classroom    Classroom @relation(fields: [ClassID], references: [ClassID])
+  question     Question @relation(fields: [QuestID], references: [QuestID])
+
+  @@unique([ClassID, QuestID])
 }
 
 model Submission {
