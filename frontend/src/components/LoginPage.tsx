@@ -3,11 +3,11 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { GraduationCapIcon } from './Icons';
 import '../styles/globals.css';
 
-interface LoginPageProps {
-  onSwitchToRegister: () => void;
-}
+// interface LoginPageProps {
+//   // Removed onSwitchToRegister - registration is disabled
+// }
 
-export default function LoginPage({ onSwitchToRegister }: LoginPageProps) {
+export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -73,14 +73,6 @@ export default function LoginPage({ onSwitchToRegister }: LoginPageProps) {
           </button>
         </form>
 
-        <div className="auth-footer">
-          <p>
-            Don't have an account?{' '}
-            <button className="link-button" onClick={onSwitchToRegister}>
-              Sign up
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   );

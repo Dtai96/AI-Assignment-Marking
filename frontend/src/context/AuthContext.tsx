@@ -15,7 +15,6 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, fullName: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -62,26 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (username: string, email: string, fullName: string, password: string) => {
-    try {
-      const response = await api.register(username, email, fullName, password);
-      const { access_token, user: userData } = response;
-      
-      setToken(access_token);
-      setUser(userData);
-      
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      api.setToken(access_token);
-    } catch (error: any) {
-      if (error.message.includes('400')) {
-        throw new Error(error.message || 'Username or email already exists');
-      }
-      throw new Error(error.message || 'Registration failed');
-    }
-  };
-
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -112,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       token, 
       login, 
-      register, 
       logout, 
       isAuthenticated: !!token,
       isAdmin,

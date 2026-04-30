@@ -50,21 +50,6 @@ export async function login(username: string, password: string) {
   return res.json();
 }
 
-export async function register(username: string, email: string, full_name: string, password: string) {
-  const res = await fetch(`${API_BASE}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, full_name, password }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(err.detail || 'Registration failed');
-  }
-
-  return res.json();
-}
-
 export async function getCurrentUser() {
   const res = await fetch(`${API_BASE}/auth/me`, {
     headers: getAuthHeaders(),
