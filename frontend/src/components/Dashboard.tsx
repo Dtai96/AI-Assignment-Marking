@@ -8,6 +8,7 @@ import StudentManagement from "./StudentManagement";
 import QuestionManagement from "./QuestionManagement";
 import { useAuth } from "../context/AuthContext";
 import ChangePasswordModal from "./ChangePasswordModal";
+import AssignmentManagement from "./AssignmentManagement";
 import { LayoutDashboardIcon, FileTextIcon, UsersIcon } from "./Icons";
 
 interface DashboardProps {
@@ -22,7 +23,7 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
   const [ungradedCount, setUngradedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"submissions" | "students" | "questions">("submissions");
+  const [activeTab, setActiveTab] = useState<"submissions" | "students" | "questions" | "assignments">(isStudent ? "assignments" : "submissions");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -44,10 +45,10 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
     fetchData();
   }, [fetchData]);
 
-  // Ensure students can't access restricted tabs
+  // Ensure students can only access assignments tab
   useEffect(() => {
-    if (isStudent && (activeTab === "students" || activeTab === "questions")) {
-      setActiveTab("submissions");
+    if (isStudent && activeTab !== "assignments") {
+      setActiveTab("assignments");
     }
   }, [isStudent, activeTab]);
 
@@ -256,15 +257,16 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
         width: "fit-content"
       }}>
         {[
-          { id: "submissions", label: "Submissions", icon: <FileTextIcon size={18} /> },
           ...(!isStudent ? [
+            { id: "submissions", label: "Submissions", icon: <FileTextIcon size={18} /> },
             { id: "students", label: "Students", icon: <UsersIcon size={18} /> },
-            { id: "questions", label: "Questions", icon: <LayoutDashboardIcon size={18} /> }
-          ] : [])
+            { id: "questions", label: "Questions", icon: <LayoutDashboardIcon size={18} /> },
+          ] : []),
+          { id: "assignments", label: "Assignments", icon: <FileTextIcon size={18} /> },
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as "submissions" | "students" | "questions")}
+            onClick={() => setActiveTab(tab.id as "submissions" | "students" | "questions" | "assignments")}
             style={{
               padding: "12px 24px",
               borderRadius: "var(--radius)",
@@ -333,6 +335,8 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
       {activeTab === "students" && <StudentManagement />}
 
       {activeTab === "questions" && <QuestionManagement />}
+
+      {activeTab === "assignments" && <AssignmentManagement />}
       
       {/* Change Password Modal */}
       <ChangePasswordModal 

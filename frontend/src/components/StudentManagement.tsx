@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { getStudents, createStudent, updateStudent, deleteStudent } from "../api/client";
-import type { Student } from "../types";
+import { getStudents, createStudent, updateStudent, deleteStudent, getClasses } from "../api/client";
+import type { Student, Classroom } from "../types";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,17 +11,19 @@ interface StudentManagementProps {
 export default function StudentManagement({ onStudentAdded }: StudentManagementProps) {
   const { hasPermission } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<Classroom[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [formData, setFormData] = useState({ StudentID: "", Name: "", Class: "" });
+  const [formData, setFormData] = useState({ StudentID: "", Name: "", ClassID: "", UserID: "" });
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchStudents = async () => {
     try {
-      const data = await getStudents();
-      setStudents(data.students);
+      const [sData, cData] = await Promise.all([getStudents(), getClasses()]);
+      setStudents(sData.students);
+      setClasses(cData.classes);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load students");
@@ -35,7 +37,7 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
     return (
       student.StudentID.toLowerCase().includes(searchStr) ||
       student.Name.toLowerCase().includes(searchStr) ||
-      student.Class.toLowerCase().includes(searchStr)
+      student.ClassID.toLowerCase().includes(searchStr)
     );
   });
 
@@ -49,13 +51,13 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
 
     try {
       if (editingStudent) {
-        await updateStudent(editingStudent.StudentID, formData);
+        await updateStudent(editingStudent.StudentID, { ...formData, UserID: formData.UserID || null });
       } else {
-        await createStudent(formData);
+        await createStudent({ ...formData, UserID: formData.UserID || null });
       }
       setShowForm(false);
       setEditingStudent(null);
-      setFormData({ StudentID: "", Name: "", Class: "" });
+      setFormData({ StudentID: "", Name: "", ClassID: "", UserID: "" });
       await fetchStudents();
       onStudentAdded?.();
     } catch (err) {
@@ -65,7 +67,7 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
 
   const handleEdit = (student: Student) => {
     setEditingStudent(student);
-    setFormData(student);
+    setFormData({ StudentID: student.StudentID, Name: student.Name, ClassID: student.ClassID, UserID: student.UserID || "" });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -84,7 +86,7 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
   const handleCancel = () => {
     setShowForm(false);
     setEditingStudent(null);
-    setFormData({ StudentID: "", Name: "", Class: "" });
+    setFormData({ StudentID: "", Name: "", ClassID: "", UserID: "" });
   };
 
   if (loading) {
@@ -152,13 +154,28 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "4px", fontSize: "0.875rem" }}>Class *</label>
+                <select
+                  value={formData.ClassID}
+                  onChange={(e) => setFormData({ ...formData, ClassID: e.target.value })}
+                  required
+                  style={{ width: "100%", padding: "8px", border: "1px solid var(--border)", borderRadius: "4px", backgroundColor: "var(--bg-input)", color: "var(--text-primary)" }}
+                >
+                  <option value="">Select a class...</option>
+                  {classes.map((c) => (
+                    <option key={c.ClassID} value={c.ClassID}>
+                      {c.ClassName} ({c.ClassID})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: "4px", fontSize: "0.875rem" }}>User ID (optional)</label>
                 <input
                   type="text"
-                  value={formData.Class}
-                  onChange={(e) => setFormData({ ...formData, Class: e.target.value })}
-                  required
+                  value={formData.UserID}
+                  onChange={(e) => setFormData({ ...formData, UserID: e.target.value })}
                   style={{ width: "100%", padding: "8px", border: "1px solid var(--border)", borderRadius: "4px" }}
-                  placeholder="e.g., CS101"
+                  placeholder="Link to a user account (optional)"
                 />
               </div>
               <div style={{ display: "flex", gap: "8px" }}>
@@ -185,6 +202,7 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
                   <th>Student ID</th>
                   <th>Name</th>
                   <th>Class</th>
+                  <th>User Account</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -193,7 +211,8 @@ export default function StudentManagement({ onStudentAdded }: StudentManagementP
                   <tr key={student.StudentID}>
                     <td style={{ fontWeight: 600, color: "var(--accent)" }}>{student.StudentID}</td>
                     <td>{student.Name}</td>
-                    <td>{student.Class}</td>
+                    <td>{student.ClassID}</td>
+                    <td style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>{student.UserID ? "Linked" : "—"}</td>
                     <td>
                       <div style={{ display: "flex", gap: "8px" }}>
                         {(hasPermission('update_students')) && (
