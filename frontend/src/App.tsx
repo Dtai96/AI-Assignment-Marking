@@ -13,22 +13,8 @@ function AuthenticatedApp() {
   const [hasStarted, setHasStarted] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
-  if (isAuthenticated) {
-    return <Dashboard onLogout={logout} />;
-  }
-  else if (!hasStarted) {
-    return <LandingPage onStart={() => setHasStarted(true)} />;
-  }
-  else {
-    if (showLogin) {
-      return <LoginPage onSwitchToRegister={() => setShowLogin(false)} />;
-    } else {
-      return <RegisterPage onSwitchToLogin={() => setShowLogin(true)} />;
-    }
-  }
-
   // Admin Dashboard with route protection
-  if (showAdminDashboard) {
+  if (isAuthenticated && showAdminDashboard) {
     return (
       <AdminRoute onUnauthorized={() => setShowAdminDashboard(false)}>
         <AdminDashboard onBack={() => setShowAdminDashboard(false)} />
@@ -36,7 +22,19 @@ function AuthenticatedApp() {
     );
   }
 
-  return <Dashboard onLogout={logout} onNavigateToAdmin={() => setShowAdminDashboard(true)} />;
+  if (isAuthenticated) {
+    return <Dashboard onLogout={logout} onNavigateToAdmin={() => setShowAdminDashboard(true)} />;
+  }
+  
+  if (!hasStarted) {
+    return <LandingPage onStart={() => setHasStarted(true)} />;
+  }
+  
+  if (showLogin) {
+    return <LoginPage onSwitchToRegister={() => setShowLogin(false)} />;
+  } else {
+    return <RegisterPage onSwitchToLogin={() => setShowLogin(true)} />;
+  }
 }
 
 function App() {
