@@ -64,7 +64,8 @@ async def update_student(
         where={"StudentID": student_id},
         data={
             "Name": student.Name,
-            "Class": student.Class
+            "ClassID": student.ClassID,
+            "UserID": student.UserID,
         }
     )
     return {"student": updated, "message": "Student updated successfully"}

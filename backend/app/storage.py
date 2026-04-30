@@ -110,6 +110,10 @@ class SubmissionStore:
         )
         return question
 
+    async def get_class(self, class_id: str) -> dict | None:
+        """Get a classroom by ID"""
+        return await self.db.classroom.find_unique(where={"ClassID": class_id})
+
 
 # This will be initialized with the Prisma client in main.py
 store = None

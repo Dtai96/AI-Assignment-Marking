@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import upload, grading, submissions, students, questions, auth, users
+from app.routers import upload, grading, submissions, students, questions, auth, users, classes, assignments
 from app.database import connect_db, disconnect_db
 from app.storage import SubmissionStore
 from app.database import db
@@ -39,3 +39,5 @@ app.include_router(grading.router, prefix="/api")
 app.include_router(submissions.router, prefix="/api")
 app.include_router(students.router, prefix="/api")
 app.include_router(questions.router, prefix="/api")
+app.include_router(classes.router, prefix="/api")
+app.include_router(assignments.router, prefix="/api")

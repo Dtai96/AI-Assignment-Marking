@@ -3,10 +3,23 @@ from typing import Optional
 from datetime import datetime
 
 
+class Classroom(BaseModel):
+    ClassID: str
+    ClassName: str
+    ClassSubject: str
+
+
+class ClassroomCreate(BaseModel):
+    ClassID: str
+    ClassName: str
+    ClassSubject: str
+
+
 class Student(BaseModel):
     StudentID: str
     Name: str
-    Class: str
+    ClassID: str
+    UserID: Optional[str] = None
 
 
 class Question(BaseModel):
@@ -107,3 +120,18 @@ class SubmissionListResponse(BaseModel):
     submissions: list[SubmissionOut]
     total: int
     ungraded_count: int
+
+
+class AssignmentCreate(BaseModel):
+    ClassID: str
+    QuestID: str
+
+
+class AssignmentOut(BaseModel):
+    AssignmentID: str
+    ClassID: str
+    QuestID: str
+    assigned_at: datetime
+    class_name: Optional[str] = None
+    class_subject: Optional[str] = None
+    question_prompt: Optional[str] = None
