@@ -18,25 +18,49 @@ async def seed_database():
     await db.connect()
 
     try:
-        # Create sample students
-        students = [
-            {"StudentID": "S10485739", "Name": "Alice", "Class": "CS101"},
-            {"StudentID": "S10492811", "Name": "David", "Class": "CS101"},
-            {"StudentID": "S10499221", "Name": "Bob", "Class": "CS101"},
-            {"StudentID": "S10511334", "Name": "Charlie", "Class": "CS101"},
+        # ── 1. Classes ────────────────────────────────────────────────
+        classes = [
+            {"ClassID": "CS101", "ClassName": "Introduction to Computer Science", "ClassSubject": "Computer Science"},
+            {"ClassID": "CS202", "ClassName": "Data Structures and Algorithms", "ClassSubject": "Computer Science"},
         ]
 
-        print("Creating students...")
+        print("Creating classes...")
+        for class_data in classes:
+            existing = await db.classroom.find_unique(where={"ClassID": class_data["ClassID"]})
+            if not existing:
+                await db.classroom.create(data=class_data)
+                print(f"  Created class: {class_data['ClassName']} ({class_data['ClassID']})")
+            else:
+                print(f"  Class already exists: {class_data['ClassName']} ({class_data['ClassID']})")
+
+        # ── 2. Students ───────────────────────────────────────────────
+        # Look up student user IDs (created by seed_auth.py)
+        student_user_map = {}
+        for username in ["alice", "david", "bob", "charlie"]:
+            user = await db.user.find_unique(where={"username": username})
+            if user:
+                student_user_map[username] = user.id
+
+        students = [
+            {"StudentID": "S10485739", "Name": "Alice", "ClassID": "CS101", "UserID": student_user_map.get("alice")},
+            {"StudentID": "S10492811", "Name": "David", "ClassID": "CS101", "UserID": student_user_map.get("david")},
+            {"StudentID": "S10499221", "Name": "Bob", "ClassID": "CS101", "UserID": student_user_map.get("bob")},
+            {"StudentID": "S10511334", "Name": "Charlie", "ClassID": "CS202", "UserID": student_user_map.get("charlie")},
+        ]
+
+        print("\nCreating students...")
         for student_data in students:
             existing = await db.student.find_unique(where={"StudentID": student_data["StudentID"]})
             if not existing:
                 await db.student.create(data=student_data)
-                print(
-                    f"  Created student: {student_data['Name']} ({student_data['StudentID']})")
+                print(f"  Created student: {student_data['Name']} ({student_data['StudentID']})")
             else:
-                print(
-                    f"  Student already exists: {student_data['Name']} ({student_data['StudentID']})")
-
+                # Update UserID in case seed_auth was run after seed
+                await db.student.update(
+                    where={"StudentID": student_data["StudentID"]},
+                    data={"UserID": student_data["UserID"], "ClassID": student_data["ClassID"]}
+                )
+                print(f"  Updated student: {student_data['Name']} ({student_data['StudentID']})") 
         # Create sample questions
         questions = [
             {
