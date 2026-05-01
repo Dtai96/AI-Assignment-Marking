@@ -13,31 +13,53 @@ async def list_assignments(
     token: str = Depends(oauth2_scheme)
 ):
     """
-    Get assignments.
-    - Teachers/Admins: get all assignments with class and question info.
-    - Students: get only assignments for their enrolled class.
+    Get assignments - Teachers/Admins only (returns all).
+    Students use GET /classes/{class_id}/assignments instead.
     """
     user = await get_current_user(db, token)
 
     if storage.store is None:
         raise HTTPException(status_code=503, detail="Database not initialized")
 
-    if user.role == "student":
-        # Find the student record linked to this user
-        student = await storage.store.db.student.find_first(
-            where={"UserID": user.id}
-        )
-        if not student:
-            return {"assignments": [], "total": 0}
+    assignments = await storage.store.db.assignment.find_many(
+        include={"classroom": True, "question": True}
+    )
 
-        assignments = await storage.store.db.assignment.find_many(
-            where={"ClassID": student.ClassID},
-            include={"classroom": True, "question": True}
-        )
-    else:
-        assignments = await storage.store.db.assignment.find_many(
-            include={"classroom": True, "question": True}
-        )
+    result = []
+    for a in assignments:
+        result.append({
+            "AssignmentID": a.AssignmentID,
+            "ClassID": a.ClassID,
+            "QuestID": a.QuestID,
+            "assigned_at": a.assigned_at.isoformat(),
+            "class_name": a.classroom.ClassName if a.classroom else None,
+            "class_subject": a.classroom.ClassSubject if a.classroom else None,
+            "question_prompt": a.question.prompt[:120] + "..." if a.question and len(a.question.prompt) > 120 else (a.question.prompt if a.question else None),
+        })
+
+    return {"assignments": result, "total": len(result)}
+
+
+@router.get("/classes/{class_id}/assignments")
+async def list_class_assignments(
+    class_id: str,
+    token: str = Depends(oauth2_scheme)
+):
+    """Get all assignments for a specific class - Available to all authenticated users"""
+    user = await get_current_user(db, token)
+
+    if storage.store is None:
+        raise HTTPException(status_code=503, detail="Database not initialized")
+
+    # Verify class exists
+    cls = await storage.store.db.classroom.find_unique(where={"ClassID": class_id})
+    if not cls:
+        raise HTTPException(status_code=404, detail="Class not found")
+
+    assignments = await storage.store.db.assignment.find_many(
+        where={"ClassID": class_id},
+        include={"classroom": True, "question": True}
+    )
 
     result = []
     for a in assignments:

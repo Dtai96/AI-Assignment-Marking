@@ -42,10 +42,10 @@ async def seed_database():
                 student_user_map[username] = user.id
 
         students = [
-            {"StudentID": "S10485739", "Name": "Alice", "ClassID": "CS101", "UserID": student_user_map.get("alice")},
-            {"StudentID": "S10492811", "Name": "David", "ClassID": "CS101", "UserID": student_user_map.get("david")},
-            {"StudentID": "S10499221", "Name": "Bob", "ClassID": "CS101", "UserID": student_user_map.get("bob")},
-            {"StudentID": "S10511334", "Name": "Charlie", "ClassID": "CS202", "UserID": student_user_map.get("charlie")},
+            {"StudentID": "S10485739", "Name": "Alice", "UserID": student_user_map.get("alice")},
+            {"StudentID": "S10492811", "Name": "David", "UserID": student_user_map.get("david")},
+            {"StudentID": "S10499221", "Name": "Bob", "UserID": student_user_map.get("bob")},
+            {"StudentID": "S10511334", "Name": "Charlie", "UserID": student_user_map.get("charlie")},
         ]
 
         print("\nCreating students...")
@@ -58,9 +58,30 @@ async def seed_database():
                 # Update UserID in case seed_auth was run after seed
                 await db.student.update(
                     where={"StudentID": student_data["StudentID"]},
-                    data={"UserID": student_data["UserID"], "ClassID": student_data["ClassID"]}
+                    data={"UserID": student_data["UserID"]}
                 )
                 print(f"  Updated student: {student_data['Name']} ({student_data['StudentID']})") 
+
+        # ── 3. Classmates (student-class enrollments) ─────────────────
+        classmates = [
+            {"StudentID": "S10485739", "ClassroomID": "CS101"},  # Alice -> CS101
+            {"StudentID": "S10492811", "ClassroomID": "CS101"},  # David -> CS101
+            {"StudentID": "S10499221", "ClassroomID": "CS101"},  # Bob   -> CS101
+            {"StudentID": "S10511334", "ClassroomID": "CS202"},  # Charlie -> CS202
+            # Example: Alice also attends CS202
+            {"StudentID": "S10485739", "ClassroomID": "CS202"},  # Alice -> CS202
+        ]
+
+        print("\nCreating classmates (enrollments)...")
+        for cm in classmates:
+            existing = await db.classmate.find_first(
+                where={"StudentID": cm["StudentID"], "ClassroomID": cm["ClassroomID"]}
+            )
+            if not existing:
+                await db.classmate.create(data=cm)
+                print(f"  Enrolled {cm['StudentID']} in {cm['ClassroomID']}")
+            else:
+                print(f"  Already enrolled: {cm['StudentID']} in {cm['ClassroomID']}") 
         # Create sample questions
         questions = [
             {

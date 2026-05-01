@@ -8,10 +8,12 @@ import type {
   StudentListResponse,
   QuestionListResponse,
   ClassListResponse,
+  ClassmateListResponse,
   AssignmentListResponse,
   Student,
   Question,
   Classroom,
+  Classmate,
   Assignment,
 } from "../types";
 
@@ -336,6 +338,50 @@ export async function deleteClass(classId: string): Promise<{ message: string }>
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail || 'Failed to delete class');
   }
+  return res.json();
+}
+
+// Classmate (enrollment) endpoints
+export async function getMyClasses(): Promise<ClassListResponse> {
+  const res = await fetch(`${API_BASE}/classmates/my-classes`, { headers: getAuthHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch enrolled classes: ${res.statusText}`);
+  return res.json();
+}
+
+export async function getClassmates(): Promise<ClassmateListResponse> {
+  const res = await fetch(`${API_BASE}/classmates`, { headers: getAuthHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch classmates: ${res.statusText}`);
+  return res.json();
+}
+
+export async function addClassmate(data: { StudentID: string; ClassroomID: string }): Promise<{ classmate: Classmate; message: string }> {
+  const res = await fetch(`${API_BASE}/classmates`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to enroll student');
+  }
+  return res.json();
+}
+
+export async function removeClassmate(mateId: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/classmates/${mateId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Failed to remove enrollment');
+  }
+  return res.json();
+}
+
+export async function getClassAssignments(classId: string): Promise<AssignmentListResponse> {
+  const res = await fetch(`${API_BASE}/classes/${classId}/assignments`, { headers: getAuthHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch class assignments: ${res.statusText}`);
   return res.json();
 }
 

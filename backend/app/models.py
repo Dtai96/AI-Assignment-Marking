@@ -18,8 +18,18 @@ class ClassroomCreate(BaseModel):
 class Student(BaseModel):
     StudentID: str
     Name: str
-    ClassID: str
     UserID: Optional[str] = None
+
+
+class ClassmateCreate(BaseModel):
+    StudentID: str
+    ClassroomID: str
+
+
+class ClassmateOut(BaseModel):
+    MateID: str
+    StudentID: str
+    ClassroomID: str
 
 
 class Question(BaseModel):

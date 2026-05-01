@@ -11,18 +11,27 @@ model Classroom {
   ClassID      String       @id
   ClassName    String
   ClassSubject String
-  students     Student[]
   assignments  Assignment[]
+  classmates   Classmate[]
 }
 
 model Student {
   StudentID    String       @id
   Name         String
-  ClassID      String
   UserID       String?      @unique
   submissions  Submission[]
-  classroom    Classroom    @relation(fields: [ClassID], references: [ClassID])
   user         User?        @relation(fields: [UserID], references: [id])
+  classmates   Classmate[]
+}
+
+model Classmate {
+  MateID      String    @id @default(cuid())
+  StudentID   String
+  ClassroomID String
+  student     Student   @relation(fields: [StudentID], references: [StudentID])
+  classroom   Classroom @relation(fields: [ClassroomID], references: [ClassID])
+
+  @@unique([StudentID, ClassroomID])
 }
 
 model User {

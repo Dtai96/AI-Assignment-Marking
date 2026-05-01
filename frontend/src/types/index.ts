@@ -7,8 +7,13 @@ export interface Classroom {
 export interface Student {
   StudentID: string;
   Name: string;
-  ClassID: string;
   UserID?: string | null;
+}
+
+export interface Classmate {
+  MateID: string;
+  StudentID: string;
+  ClassroomID: string;
 }
 
 export interface Assignment {
@@ -86,6 +91,11 @@ export interface QuestionListResponse {
 
 export interface ClassListResponse {
   classes: Classroom[];
+  total: number;
+}
+
+export interface ClassmateListResponse {
+  classmates: Classmate[];
   total: number;
 }
 

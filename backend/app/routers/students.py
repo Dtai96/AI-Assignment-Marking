@@ -64,7 +64,6 @@ async def update_student(
         where={"StudentID": student_id},
         data={
             "Name": student.Name,
-            "ClassID": student.ClassID,
             "UserID": student.UserID,
         }
     )
