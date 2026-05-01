@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from prisma import Prisma
 from app.database import db
-from app.models import UserCreate, UserResponse
+from app.models import UserCreate, UserResponse, Student
 from app.services.auth import get_password_hash, get_current_user, oauth2_scheme
 from app.services.rbac import require_admin
 from typing import List
@@ -85,6 +85,24 @@ async def create_new_user(
         "is_active": user_data.is_active if hasattr(user_data, 'is_active') else True
     })
     
+    # Create corresponding student record for student users
+    if user_data.role == "student":
+        # Generate StudentID from username or use a default pattern
+        # For now, use username as StudentID
+        student_id = user_data.username
+        # Check if student record already exists
+        existing_student = await db.student.find_unique(where={"StudentID": student_id})
+        if not existing_student:
+            try:
+                await db.student.create(data={
+                    "StudentID": student_id,
+                    "Name": user_data.full_name,
+                    "UserID": user.id
+                })
+            except Exception as e:
+                # Log the error but don't fail the user creation
+                print(f"Warning: Failed to create student record for {user_data.username}: {e}")
+    
     return UserResponse(
         id=user.id,
         username=user.username,
@@ -131,6 +149,23 @@ async def update_user(
             "is_active": user_update.is_active
         }
     )
+    
+    # Create corresponding student record if role is changed to student and no student record exists
+    if user_update.role == "student":
+        # Check if student record already exists
+        existing_student = await db.student.find_unique(where={"UserID": user_id})
+        if not existing_student:
+            try:
+                # Use username as StudentID
+                student_id = updated_user.username
+                await db.student.create(data={
+                    "StudentID": student_id,
+                    "Name": updated_user.full_name,
+                    "UserID": updated_user.id
+                })
+            except Exception as e:
+                # Log the error but don't fail the user update
+                print(f"Warning: Failed to create student record for {updated_user.username}: {e}")
     
     return UserResponse(
         id=updated_user.id,

@@ -15,7 +15,7 @@ import type {
   Classroom,
   Classmate,
   Assignment,
-} from "../types";
+} from "../types/index.ts";
 
 // Authentication token management
 let authToken: string | null = null;
