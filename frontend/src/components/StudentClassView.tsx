@@ -258,7 +258,7 @@ export default function StudentClassView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {assignments.map((a) => (
+                  {filteredAssignment.map((a) => (
                     <tr key={a.AssignmentID}>
                       <td style={{ fontWeight: 600, color: "var(--accent)", whiteSpace: "nowrap" }}>
                         {a.QuestID}
@@ -572,7 +572,7 @@ export default function StudentClassView() {
           </div>
           <div style={{ width: "100%", maxWidth: "400px" }}>
             <SearchBar 
-              placeholder="Search Classes by Name, ID and Subject..." 
+              placeholder="Search Classes by Name, Subject and ID..." 
               onSearch={(val) => setSearchCls(val)} 
             />
           </div>
@@ -602,7 +602,7 @@ export default function StudentClassView() {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
-            {classes.map((cls) => (
+            {filteredClass.map((cls) => (
               <button
                 key={cls.ClassID}
                 onClick={() => handleSelectClass(cls)}

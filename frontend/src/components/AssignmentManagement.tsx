@@ -246,7 +246,7 @@ export default function AssignmentManagement() {
                 </tr>
               </thead>
               <tbody>
-                {assignments.map((a) => (
+                {filteredData.map((a) => (
                   <tr key={a.AssignmentID}>
                     {!isStudent && (
                       <td style={{ fontWeight: 600, color: "var(--accent)" }}>
