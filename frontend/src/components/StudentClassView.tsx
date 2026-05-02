@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getMyClasses, getClassAssignments, submitStudentAssignment, getSubmissions } from "../api/client";
 import type { Classroom, Assignment, UploadResponse, Submission } from "../types";
+import SearchBar from "./SearchBar";
 
 export default function StudentClassView() {
   const [classes, setClasses] = useState<Classroom[]>([]);
@@ -15,6 +16,8 @@ export default function StudentClassView() {
   const [aiResults, setAiResults] = useState<UploadResponse | null>(null);
   const [gradingStatus, setGradingStatus] = useState<Record<string, 'pending' | 'processing' | 'completed'>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [searchCls, setSearchCls] = useState("");
+  const [searchAsg, setSearchAsg] = useState("");
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -154,6 +157,22 @@ export default function StudentClassView() {
     setError(null);
   };
 
+  const filteredClass = classes.filter(cls => {
+    const searchStr = searchCls.toLowerCase();
+    return (
+      cls.ClassName.toLowerCase().includes(searchStr) ||
+      cls.ClassID.toLowerCase().includes(searchStr) ||
+      cls.ClassSubject.toLowerCase().includes(searchStr)
+    );
+  });
+  const filteredAssignment = assignments.filter(asg => {
+    const searchStr = searchAsg.toLowerCase();
+    return (
+      asg.QuestID.toLowerCase().includes(searchStr) ||
+      asg.question_prompt?.toLowerCase().includes(searchStr)
+    );
+  });
+
   if (loadingClasses) {
     return (
       <div style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
@@ -173,19 +192,28 @@ export default function StudentClassView() {
           padding: "20px",
         }}>
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-            <button
-              onClick={handleBack}
-              className="btn-secondary"
-              style={{ fontSize: "0.875rem", padding: "6px 14px" }}
-            >
-              ← Back
-            </button>
-            <div>
-              <h2 style={{ fontSize: "1.25rem", margin: 0 }}>{selectedClass.ClassName}</h2>
-              <p style={{ margin: "4px 0 0", fontSize: "0.875rem", color: "var(--text-muted)" }}>
-                {selectedClass.ClassSubject} · {selectedClass.ClassID}
-              </p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "5px" }}>
+              <button
+                onClick={handleBack}
+                className="btn-secondary"
+                style={{ fontSize: "0.875rem", padding: "6px 14px" }}
+              >
+                ← Back
+              </button>
+              <div>
+                <h2 style={{ fontSize: "1.25rem", margin: 0 }}>{selectedClass.ClassName}</h2>
+                <p style={{ margin: "4px 0 0", fontSize: "0.875rem", color: "var(--text-muted)" }}>
+                  {selectedClass.ClassSubject} · {selectedClass.ClassID}
+                </p>
+              </div>
+            </div>
+            
+            <div style={{ width: "100%", maxWidth: "400px" }}>
+              <SearchBar 
+                placeholder="Search Question ID and Question Preview..." 
+                onSearch={(val) => setSearchAsg(val)} 
+              />
             </div>
           </div>
 
@@ -210,6 +238,10 @@ export default function StudentClassView() {
           ) : assignments.length === 0 ? (
             <div style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
               No assignments for this class yet.
+            </div>
+          ) : filteredAssignment.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+              No results found {searchAsg}
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
@@ -526,11 +558,24 @@ export default function StudentClassView() {
         borderRadius: "var(--radius)",
         padding: "20px",
       }}>
-        <div style={{ marginBottom: "20px" }}>
-          <h2 style={{ fontSize: "1.25rem", margin: 0 }}>My Classes</h2>
-          <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "4px" }}>
-            Click on a class to see its assignments
-          </p>
+        <div style={{
+          display: "flex", 
+          justifyContent: "space-between",
+          gap: "16px",
+          marginBottom: "20px"
+        }}>
+          <div>
+            <h2 style={{ fontSize: "1.25rem", margin: 0 }}>My Classes</h2>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "4px" }}>
+              Click on a class to see its assignments
+            </p>
+          </div>
+          <div style={{ width: "100%", maxWidth: "400px" }}>
+            <SearchBar 
+              placeholder="Search Classes by Name, ID and Subject..." 
+              onSearch={(val) => setSearchCls(val)} 
+            />
+          </div>
         </div>
 
         {error && (
@@ -550,6 +595,10 @@ export default function StudentClassView() {
         {classes.length === 0 ? (
           <div style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)" }}>
             You are not enrolled in any classes yet.
+          </div>
+        ) : filteredClass.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+            No results found {searchCls}
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>

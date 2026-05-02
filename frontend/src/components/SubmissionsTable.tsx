@@ -55,7 +55,7 @@ export default function SubmissionsTable({ submissions, onGradeComplete }: Submi
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <SearchBar 
-        placeholder="Search Student ID or Question ID..." 
+        placeholder="Search Submissions by Student ID or Question ID..." 
         onSearch={(val) => setSearchTerm(val)} 
       />
 
