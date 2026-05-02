@@ -93,3 +93,119 @@ async def upload_submission(
         plagiarism_flagged=plagiarism_flagged,
         message="Submission uploaded successfully",
     )
+
+
+@router.post("/student/submit", response_model=UploadResponse)
+async def submit_student_assignment(
+    file: UploadFile = File(...),
+    assignment_id: str = Form(),
+    token: str = Depends(oauth2_scheme)
+):
+    """Student submission endpoint - Students can submit assignments for their enrolled classes"""
+    # Authenticate user
+    user = await get_current_user(db, token)
+    
+    # Check if user is a student
+    if not is_student_role(user):
+        raise HTTPException(
+            status_code=403,
+            detail="Only students can submit assignments"
+        )
+    
+    if storage.store is None:
+        raise HTTPException(status_code=503, detail="Database not initialized")
+    
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+    
+    # Get student record
+    student = await storage.store.db.student.find_first(where={"UserID": user.id})
+    if not student:
+        raise HTTPException(
+            status_code=404,
+            detail="Student record not found. Please contact administrator."
+        )
+    
+    # Validate assignment belongs to student's enrolled classes
+    assignment = await storage.store.db.assignment.find_unique(where={"AssignmentID": assignment_id})
+    if not assignment:
+        raise HTTPException(
+            status_code=404,
+            detail="Assignment not found"
+        )
+    
+    # Check if student is enrolled in the class
+    classmate = await storage.store.db.classmate.find_first(
+        where={"StudentID": student.StudentID, "ClassroomID": assignment.ClassID}
+    )
+    if not classmate:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not enrolled in the class for this assignment"
+        )
+    
+    # Extract student ID from filename
+    match = STUDENT_ID_PATTERN.match(file.filename)
+    if not match:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not extract student ID from filename. Expected format: S<digits>_<name>.pdf",
+        )
+    
+    # Ensure student ID matches the authenticated student
+    submitted_student_id = match.group(1)
+    if submitted_student_id != student.StudentID:
+        raise HTTPException(
+            status_code=403,
+            detail="Student ID in filename does not match your account"
+        )
+    
+    # Due date validation - check if assignment was assigned before now
+    # Note: The current schema doesn't include due_date, so we're validating against assignment creation time
+    # In production, you would add a due_date field to the Assignment model
+    current_time = datetime.now(timezone.utc)
+    if assignment.assigned_at > current_time:
+        raise HTTPException(
+            status_code=400,
+            detail="Assignment has not been assigned yet. Cannot submit before assignment date."
+        )
+    
+    # Save file
+    save_path = UPLOADS_DIR / file.filename
+    content = await file.read()
+    with open(save_path, "wb") as f:
+        f.write(content)
+    
+    # Extract text
+    extracted_text = extract_text_from_pdf(str(save_path))
+    if not extracted_text.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Could not extract any text from the PDF. The file may be image-based or empty.",
+        )
+    
+    # Check plagiarism
+    other_texts = await storage.store.get_all_texts_except(submitted_student_id, assignment.QuestID)
+    plagiarism_risk_score = check_plagiarism(extracted_text, other_texts)
+    plagiarism_flagged = plagiarism_risk_score >= 50.0
+    
+    # Create submission data
+    submission_data = {
+        "StudentID": submitted_student_id,
+        "QuestID": assignment.QuestID,
+        "submission": extracted_text,
+        "plagiarism_risk_score": round(plagiarism_risk_score, 1),
+        "plagiarism_flagged": plagiarism_flagged,
+        "uploaded_at": datetime.now(timezone.utc),
+    }
+    
+    # Store submission
+    await storage.store.upsert(submission_data)
+    
+    return UploadResponse(
+        student_id=submitted_student_id,
+        filename=file.filename,
+        plagiarism_risk_score=round(plagiarism_risk_score, 1),
+        plagiarism_flagged=plagiarism_flagged,
+        message="Assignment submitted successfully",
+    )

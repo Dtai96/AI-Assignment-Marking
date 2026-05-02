@@ -92,6 +92,22 @@ export async function uploadPdf(file: File, questId: string = "Q001"): Promise<U
   return res.json();
 }
 
+export async function submitStudentAssignment(file: File, assignmentId: string): Promise<UploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("assignment_id", assignmentId);
+  const res = await fetch(`${API_BASE}/student/submit`, {
+    method: "POST",
+    body: formData,
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Submission failed");
+  }
+  return res.json();
+}
+
 export async function gradeSubmission(studentId: string, questId: string = "Q001"): Promise<GradeResponse> {
   const res = await fetch(`${API_BASE}/grade/${studentId}?quest_id=${questId}`, {
     method: "POST",
