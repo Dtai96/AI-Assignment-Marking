@@ -48,6 +48,7 @@ async def list_submissions(token: str = Depends(oauth2_scheme)):
                 plagiarism_risk_score=sub.plagiarism_risk_score,
                 plagiarism_flagged=sub.plagiarism_flagged,
                 graded_at=sub.graded_at.isoformat() if sub.graded_at else None,
+                submission=sub.submission,  # Include submission content
             )
         )
         if sub.score is None:

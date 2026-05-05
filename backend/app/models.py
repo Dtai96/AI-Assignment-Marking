@@ -124,6 +124,7 @@ class SubmissionOut(BaseModel):
     plagiarism_risk_score: float
     plagiarism_flagged: bool
     graded_at: Optional[str] = None
+    submission: Optional[str] = None  # Added submission content
 
 
 class SubmissionListResponse(BaseModel):

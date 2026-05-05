@@ -42,6 +42,7 @@ export interface Submission {
   plagiarism_risk_score: number;
   plagiarism_flagged: boolean;
   graded_at: string | null;
+  submission: string | null; // Added submission content
 }
 
 export interface UploadResponse {
