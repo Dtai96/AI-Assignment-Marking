@@ -55,7 +55,7 @@ export default function StudentClassView() {
 
   // Polling effect to check for grading completion
   useEffect(() => {
-    if (!selectedClass || submissions.length === 0) return;
+    if (!selectedClass || assignments.length === 0) return;
 
     const ungradedSubmissions = submissions.filter((s) => !s.graded_at);
     if (ungradedSubmissions.length === 0) return;
@@ -63,14 +63,21 @@ export default function StudentClassView() {
     const pollGradingStatus = async () => {
       try {
         const submissionsData = await getSubmissions();
-        setSubmissions(submissionsData.submissions);
+        
+        // Filter submissions to only show those for assignments in this class
+        const classQuestIds = new Set(assignments.map(a => a.QuestID));
+        const classSubmissions = submissionsData.submissions.filter(sub => 
+          classQuestIds.has(sub.quest_id)
+        );
+        
+        setSubmissions(classSubmissions);
 
         // Update grading status for each submission
         const newGradingStatus: Record<
           string,
           "pending" | "processing" | "completed"
         > = {};
-        submissionsData.submissions.forEach((sub) => {
+        classSubmissions.forEach((sub) => {
           const key = `${sub.student_id}-${sub.quest_id}`;
           if (sub.graded_at) {
             newGradingStatus[key] = "completed";
@@ -90,7 +97,7 @@ export default function StudentClassView() {
     const intervalId = setInterval(pollGradingStatus, 5000);
 
     return () => clearInterval(intervalId);
-  }, [selectedClass, submissions]);
+  }, [selectedClass, assignments]);
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -110,6 +117,28 @@ export default function StudentClassView() {
         type: "success",
       });
       setAiResults(result);
+
+      // Update submitted assignments tracking
+      // Find the quest_id for this assignment
+      const assignment = assignments.find(
+        (a) => a.AssignmentID === assignmentId,
+      );
+      if (assignment) {
+        setSubmittedAssignments((prev) => {
+          const updated = new Set(prev);
+          updated.add(assignment.QuestID);
+          return updated;
+        });
+      }
+
+      // Refresh submissions data and filter for current class
+      const submissionsData = await getSubmissions();
+      const classQuestIds = new Set(assignments.map(a => a.QuestID));
+      const classSubmissions = submissionsData.submissions.filter(sub => 
+        classQuestIds.has(sub.quest_id)
+      );
+      setSubmissions(classSubmissions);
+
       // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
@@ -123,45 +152,6 @@ export default function StudentClassView() {
     }
   };
 
-  // Polling effect to check for grading completion
-  useEffect(() => {
-    if (!selectedClass || submissions.length === 0) return;
-
-    const ungradedSubmissions = submissions.filter((s) => !s.graded_at);
-    if (ungradedSubmissions.length === 0) return;
-
-    const pollGradingStatus = async () => {
-      try {
-        const submissionsData = await getSubmissions();
-        setSubmissions(submissionsData.submissions);
-
-        // Update grading status for each submission
-        const newGradingStatus: Record<
-          string,
-          "pending" | "processing" | "completed"
-        > = {};
-        submissionsData.submissions.forEach((sub) => {
-          const key = `${sub.student_id}-${sub.quest_id}`;
-          if (sub.graded_at) {
-            newGradingStatus[key] = "completed";
-          } else if (sub.plagiarism_risk_score > 0) {
-            newGradingStatus[key] = "processing";
-          } else {
-            newGradingStatus[key] = "pending";
-          }
-        });
-        setGradingStatus(newGradingStatus);
-      } catch (err) {
-        console.error("Error polling grading status:", err);
-      }
-    };
-
-    // Poll every 5 seconds
-    const intervalId = setInterval(pollGradingStatus, 5000);
-
-    return () => clearInterval(intervalId);
-  }, [selectedClass, submissions]);
-
   const handleSelectClass = async (cls: Classroom) => {
     setSelectedClass(cls);
     setLoadingAssignments(true);
@@ -170,13 +160,20 @@ export default function StudentClassView() {
       const data = await getClassAssignments(cls.ClassID);
       setAssignments(data.assignments);
 
-      // Fetch submissions for this class
+      // Fetch submissions for this student
       const submissionsData = await getSubmissions();
-      setSubmissions(submissionsData.submissions);
+      
+      // Filter submissions to only show those for assignments in this class
+      const classQuestIds = new Set(data.assignments.map(a => a.QuestID));
+      const classSubmissions = submissionsData.submissions.filter(sub => 
+        classQuestIds.has(sub.quest_id)
+      );
+      
+      setSubmissions(classSubmissions);
 
       // Track which assignments have been submitted by this student
       const submitted = new Set<string>();
-      submissionsData.submissions.forEach((sub) => {
+      classSubmissions.forEach(sub => {
         submitted.add(sub.quest_id);
       });
       setSubmittedAssignments(submitted);
@@ -391,6 +388,16 @@ export default function StudentClassView() {
                             (s) => s.quest_id === a.QuestID,
                           );
                           const isGraded = submission?.graded_at !== null;
+
+                          // Debug logging
+                          console.log(`Assignment ${a.QuestID}:`, {
+                            isSubmitted,
+                            hasSubmission: !!submission,
+                            isGraded,
+                            submittedAssignments:
+                              Array.from(submittedAssignments),
+                            submissionData: submission,
+                          });
 
                           if (!isSubmitted) {
                             // Not submitted yet - show upload button
@@ -789,26 +796,6 @@ export default function StudentClassView() {
                             Submitted Work Details
                           </h4>
                           <div style={{ display: "grid", gap: "12px" }}>
-                            <div>
-                              <span
-                                style={{
-                                  fontSize: "0.75rem",
-                                  color: "var(--text-muted)",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                FILE NAME
-                              </span>
-                              <p
-                                style={{
-                                  fontSize: "0.875rem",
-                                  margin: "4px 0 0",
-                                  color: "var(--text-primary)",
-                                }}
-                              >
-                                {submission.filename || "N/A"}
-                              </p>
-                            </div>
                             <div>
                               <span
                                 style={{
