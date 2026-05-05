@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
 model Classroom {
-  ClassID      String       @id @default(cuid())
+  ClassID      String       @id
   ClassName    String
   ClassSubject String
   assignments  Assignment[]
@@ -16,12 +16,12 @@ model Classroom {
 }
 
 model Student {
-  StudentID   String       @id @default(cuid())
-  Name        String
-  UserID      String?      @unique
-  submissions Submission[]
-  user        User?        @relation(fields: [UserID], references: [id])
-  classmates  Classmate[]
+  StudentID    String       @id
+  Name         String
+  UserID       String?      @unique
+  submissions  Submission[]
+  user         User?        @relation(fields: [UserID], references: [id])
+  classmates   Classmate[]
 }
 
 model Classmate {
@@ -49,40 +49,39 @@ model User {
 }
 
 model Question {
-  QuestID     String       @id @default(cuid())
-  prompt      String       @db.Text
-  rubric      String       @db.Text
-  submissions Submission[]
-  assignments Assignment[]
+  QuestID      String       @id
+  prompt       String       @db.Text
+  rubric       String       @db.Text
+  submissions  Submission[]
+  assignments  Assignment[]
 }
 
 model Assignment {
-  AssignmentID String    @id @default(cuid())
+  AssignmentID String   @id @default(cuid())
   ClassID      String
   QuestID      String
-  assigned_at  DateTime  @default(now())
+  assigned_at  DateTime @default(now())
   classroom    Classroom @relation(fields: [ClassID], references: [ClassID])
-  question     Question  @relation(fields: [QuestID], references: [QuestID])
+  question     Question @relation(fields: [QuestID], references: [QuestID])
 
   @@unique([ClassID, QuestID])
 }
 
 model Submission {
-  StudentID             String
-  QuestID               String
-  // Changed from LongText to Text for Postgres compatibility
-  submission            String    @db.Text
-  score                 Int?
-  grade                 Boolean   @default(false)
-  draft_feedback        String?   @db.Text
-  plagiarism_risk_score Float     @default(0.0)
-  plagiarism_flagged    Boolean   @default(false)
-  uploaded_at           DateTime  @default(now())
-  graded_at             DateTime?
-  graded_by             String?
+  StudentID           String
+  QuestID             String
+  submission          String       @db.LongText
+  score               Int?
+  grade               Boolean  @default(false)
+  draft_feedback      String?    @db.Text
+  plagiarism_risk_score Float  @default(0.0)
+  plagiarism_flagged  Boolean  @default(false)
+  uploaded_at         DateTime @default(now())
+  graded_at           DateTime?
+  graded_by           String?
 
   @@id([StudentID, QuestID])
-  student  Student  @relation(fields: [StudentID], references: [StudentID])
-  question Question @relation(fields: [QuestID], references: [QuestID])
-  gradedBy User?    @relation(fields: [graded_by], references: [id])
+  student    Student   @relation(fields: [StudentID], references: [StudentID])
+  question   Question  @relation(fields: [QuestID], references: [QuestID])
+  gradedBy   User?     @relation(fields: [graded_by], references: [id])
 }

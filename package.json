@@ -1,0 +1,19 @@
+{
+  "name": "ai-assignment-marking",
+  "version": "1.0.0",
+  "description": "An AI-powered automated grading system that evaluates student PDF submissions using Google Gemini, with built-in plagiarism detection and MySQL database storage.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dtai96/AI-Assignment-Marking.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dtai96/AI-Assignment-Marking/issues"
+  },
+  "homepage": "https://github.com/Dtai96/AI-Assignment-Marking#readme"
+}

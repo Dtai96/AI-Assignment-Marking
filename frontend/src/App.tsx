@@ -5,6 +5,7 @@ import LoginPage from './components/LoginPage';
 import LandingPage from './components/LandingPage.tsx';
 import AdminDashboard from './components/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
+import SubmittedAssignments from './components/SubmittedAssignments';
 
 function AuthenticatedApp() {
   const { isAuthenticated, logout } = useAuth();
@@ -21,14 +22,14 @@ function AuthenticatedApp() {
   }
 
   if (isAuthenticated) {
-    return <Dashboard onLogout={logout} onNavigateToAdmin={() => setShowAdminDashboard(true)} />;
+    return <Dashboard onLogout={logout} onNavigateToAdmin={() => setShowAdminDashboard(true)} />
   }
   
   if (!hasStarted) {
     return <LandingPage onStart={() => setHasStarted(true)} />;
   }
   
-  return <LoginPage />;
+  return <LoginPage />
 }
 
 function App() {

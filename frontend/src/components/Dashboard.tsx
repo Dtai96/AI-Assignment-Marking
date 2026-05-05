@@ -11,6 +11,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import AssignmentManagement from "./AssignmentManagement";
 import StudentClassView from "./StudentClassView";
 import { LayoutDashboardIcon, FileTextIcon, UsersIcon } from "./Icons";
+import SubmittedAssignments from "./SubmittedAssignments";
 
 interface DashboardProps {
   onLogout: () => void;
@@ -24,7 +25,7 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
   const [ungradedCount, setUngradedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"submissions" | "students" | "questions" | "assignments" | "classes">(isStudent ? "classes" : "submissions");
+  const [activeTab, setActiveTab] = useState<"submissions" | "students" | "questions" | "assignments" | "classes" | "my-submissions">(isStudent ? "classes" : "submissions");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -48,7 +49,7 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
 
   // Ensure students can only access the classes tab
   useEffect(() => {
-    if (isStudent && activeTab !== "classes") {
+    if (isStudent && activeTab !== "classes" && activeTab !== "my-submissions") {
       setActiveTab("classes");
     }
   }, [isStudent, activeTab]);
@@ -265,11 +266,12 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
             { id: "assignments", label: "Assignments", icon: <FileTextIcon size={18} /> },
           ] : [
             { id: "classes", label: "Classes", icon: <UsersIcon size={18} /> },
+            { id: "my-submissions", label: "My Submissions", icon: <FileTextIcon size={18} /> },
           ]),
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as "submissions" | "students" | "questions" | "assignments" | "classes")}
+            onClick={() => setActiveTab(tab.id as "submissions" | "students" | "questions" | "assignments" | "classes" )}
             style={{
               padding: "12px 24px",
               borderRadius: "var(--radius)",
@@ -342,6 +344,8 @@ export default function Dashboard({ onLogout, onNavigateToAdmin }: DashboardProp
       {activeTab === "assignments" && <AssignmentManagement />}
 
       {activeTab === "classes" && <StudentClassView />}
+
+      {activeTab === "my-submissions" && <SubmittedAssignments />}
       
       {/* Change Password Modal */}
       <ChangePasswordModal 

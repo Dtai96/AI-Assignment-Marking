@@ -21,8 +21,7 @@ cp .env.example .env
 
 Edit `.env` and set your MySQL credentials:
 ```
-DATABASE_URL=mysql://root:your_password@localhost:3306/ai_marking
-GEMINI_API_KEY=your_gemini_api_key
+DATABASE_URL="postgresql://postgres:ZyX-WtbZgzcc+9Y@db.sgkkwpstixxqyillskax.supabase.co:5432/postgres"
 ```
 
 ### 3. Create Database
