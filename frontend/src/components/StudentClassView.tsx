@@ -63,13 +63,13 @@ export default function StudentClassView() {
     const pollGradingStatus = async () => {
       try {
         const submissionsData = await getSubmissions();
-        
+
         // Filter submissions to only show those for assignments in this class
-        const classQuestIds = new Set(assignments.map(a => a.QuestID));
-        const classSubmissions = submissionsData.submissions.filter(sub => 
-          classQuestIds.has(sub.quest_id)
+        const classQuestIds = new Set(assignments.map((a) => a.QuestID));
+        const classSubmissions = submissionsData.submissions.filter((sub) =>
+          classQuestIds.has(sub.quest_id),
         );
-        
+
         setSubmissions(classSubmissions);
 
         // Update grading status for each submission
@@ -133,9 +133,9 @@ export default function StudentClassView() {
 
       // Refresh submissions data and filter for current class
       const submissionsData = await getSubmissions();
-      const classQuestIds = new Set(assignments.map(a => a.QuestID));
-      const classSubmissions = submissionsData.submissions.filter(sub => 
-        classQuestIds.has(sub.quest_id)
+      const classQuestIds = new Set(assignments.map((a) => a.QuestID));
+      const classSubmissions = submissionsData.submissions.filter((sub) =>
+        classQuestIds.has(sub.quest_id),
       );
       setSubmissions(classSubmissions);
 
@@ -162,18 +162,18 @@ export default function StudentClassView() {
 
       // Fetch submissions for this student
       const submissionsData = await getSubmissions();
-      
+
       // Filter submissions to only show those for assignments in this class
-      const classQuestIds = new Set(data.assignments.map(a => a.QuestID));
-      const classSubmissions = submissionsData.submissions.filter(sub => 
-        classQuestIds.has(sub.quest_id)
+      const classQuestIds = new Set(data.assignments.map((a) => a.QuestID));
+      const classSubmissions = submissionsData.submissions.filter((sub) =>
+        classQuestIds.has(sub.quest_id),
       );
-      
+
       setSubmissions(classSubmissions);
 
       // Track which assignments have been submitted by this student
       const submitted = new Set<string>();
-      classSubmissions.forEach(sub => {
+      classSubmissions.forEach((sub) => {
         submitted.add(sub.quest_id);
       });
       setSubmittedAssignments(submitted);
