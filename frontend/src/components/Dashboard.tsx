@@ -422,7 +422,7 @@ export default function Dashboard({
       {/* Tab Content */}
       {activeTab === "submissions" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          {!isStudent && <FileUpload onUploadComplete={fetchData} />}
+          {/* {!isStudent && <FileUpload onUploadComplete={fetchData} />}   */}
 
           <div
             style={{
