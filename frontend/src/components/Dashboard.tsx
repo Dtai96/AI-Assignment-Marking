@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getSubmissions } from "../api/client";
 import type { Submission } from "../types";
-import FileUpload from "./FileUpload";
 import GradeActions from "./GradeActions";
 import SubmissionsTable from "./SubmissionsTable";
 import StudentManagement from "./StudentManagement";

@@ -38,16 +38,17 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           </p>
           <p style={{ color: 'var(--text-main)', lineHeight: '1.8', fontSize: '1.1rem', marginBottom: '32px' }}>
             Tối ưu hóa việc lưu trữ và theo dõi thông tin học viên.
-            Hệ thống cho phép bạn dễ dàng thêm mới, chỉnh sửa thông tin cá nhân và phân loại sinh viên theo lớp học.
+            Hệ thống cho phép admin và giảng viên dễ dàng thêm mới, chỉnh sửa thông tin cá nhân và phân loại sinh viên theo lớp học.
           </p>
           <p style={{ color: 'var(--text-main)', lineHeight: '1.8', fontSize: '1.1rem', marginBottom: '32px' }}>
             Linh hoạt trong việc thiết kế và quản lý kho đề bài.
-            Bạn có thể thiết lập các câu hỏi kèm theo tiêu chí chấm điểm (Rubric) riêng biệt,
+            Giáo viên có thể thiết lập các câu hỏi kèm theo tiêu chí chấm điểm (Rubric) riêng biệt,
             giúp định hướng cho AI phân tích bài làm một cách chính xác và bám sát yêu cầu chuyên môn của từng bộ môn
           </p>
           <p style={{ color: 'var(--text-main)', lineHeight: '1.8', fontSize: '1.1rem', marginBottom: '32px' }}>
-            Tại đây, giảng viên có thể theo dõi toàn bộ tiến độ nộp bài, kiểm soát trạng thái chấm điểm,
+            Tại đây, giảng viên có thể theo dõi toàn bộ tiến độ nộp bài, kiểm soát trạng thái chấm điểm
             và thực hiện các thao tác chấm bài hàng loạt bằng AI, mang lại quy trình làm việc liền mạch và hiệu quả cao.
+            Học viên có thể theo dõi trạng thái bài làm của bản thân.
           </p>
           <div style={{ 
             display: "flex", 
