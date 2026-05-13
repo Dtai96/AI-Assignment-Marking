@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { getSubmissions, getAssignments } from "../api/client";
+import { getSubmissions, getAssignments, submitStudentAssignment, getMyClasses } from "../api/client";
 import type { Submission, Assignment } from "../types";
+import SearchBar from "./SearchBar";
 
 interface SubmissionWithAssignment extends Submission {
   assignment?: Assignment;
   assignmentName?: string;
+  className?: string;
 }
 
 export default function SubmittedAssignments() {
@@ -14,27 +16,35 @@ export default function SubmittedAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [submissionsData, assignmentsData] = await Promise.all([
+        const [submissionsData, assignmentsData, classesData] = await Promise.all([
           getSubmissions(),
           getAssignments(),
+          getMyClasses(),
         ]);
 
         setAssignments(assignmentsData.assignments);
 
         // Enrich submissions with assignment information
         const enrichedSubmissions = submissionsData.submissions.map((sub) => {
-          const assignment = assignmentsData.assignments.find(
+          const relevantAssignments = assignmentsData.assignments.filter(
             (a) => a.QuestID === sub.quest_id,
           );
+          const classNamesArray = relevantAssignments.map(a => {
+            const classroom = classesData.classes.find(c => c.ClassID === a.ClassID);
+            return classroom?.ClassName || "Unknown Class";
+          });
+          const primaryAssignment = relevantAssignments[0];
           return {
             ...sub,
-            assignment,
-            assignmentName: assignment?.question_prompt || sub.quest_id,
+            assignment: primaryAssignment,
+            assignmentName: primaryAssignment?.question_prompt || sub.quest_id,
+            className: classNamesArray.join(", "),
           };
         });
 
@@ -51,6 +61,13 @@ export default function SubmittedAssignments() {
 
     fetchData();
   }, []);
+
+  const filteredData = submissions.filter(sub => {
+    const searchStr = searchTerm.toLowerCase();
+    return (
+      sub.className?.toLowerCase().includes(searchStr)
+    );
+  });
 
   if (loading) {
     return (
@@ -122,9 +139,25 @@ export default function SubmittedAssignments() {
           padding: "20px",
         }}
       >
-        <h2 style={{ margin: "0 0 4px 0", fontSize: "1.25rem" }}>
-          My Submissions
-        </h2>
+
+        <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+        >
+          <h2 style={{ margin: "0 0 4px 0", fontSize: "1.25rem" }}>
+            My Submissions
+          </h2>
+          <div style={{ width: "100%", maxWidth: "400px" }}>
+            <SearchBar
+            placeholder="Search Submissions by Class..."
+            onSearch={(val) => setSearchTerm(val)}
+            />
+          </div>
+        </div>
+        
         <p
           style={{
             margin: "0 0 20px 0",
@@ -132,7 +165,7 @@ export default function SubmittedAssignments() {
             color: "var(--text-muted)",
           }}
         >
-          {submissions.length} submission{submissions.length !== 1 ? "s" : ""}{" "}
+          {filteredData.length} submission{submissions.length !== 1 ? "s" : ""}{" "}
           total
         </p>
 
@@ -143,7 +176,7 @@ export default function SubmittedAssignments() {
             gap: "16px",
           }}
         >
-          {submissions.map((submission, index) => {
+          {filteredData.map((submission, index) => {
             const submissionDate = new Date(submission.uploaded_at);
             const date = submissionDate.toLocaleDateString();
             const time = submissionDate.toLocaleTimeString();
